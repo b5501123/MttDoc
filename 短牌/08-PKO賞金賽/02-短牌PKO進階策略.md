@@ -580,7 +580,7 @@ ICM Cost = -$100
 
 ---
 
-**Final Table 策略 3：頭對頭（HU）時的 PKO 特殊性**
+**Final Table 策略 3：單挑（HU）時的 PKO 特殊性**
 
 當到達 HU（最後 2 人），PKO 賞金計算完全改變：
 
