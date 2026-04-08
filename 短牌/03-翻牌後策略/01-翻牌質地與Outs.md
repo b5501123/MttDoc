@@ -206,7 +206,7 @@ A♠ K♥ 6♦
 
 第四步：完成後的強度
 → 完成同花：強（特別是 Q♦ 和 7♦ 是同花順！）
-→ 完成順子：中等（但短牌中 Set > Straight，如果對手有 Set 仍輸）
+→ 完成順子：強牌（短牌中 Straight > Three of a Kind，但仍輸給 Flush 和 Full House）
 ```
 
 ---

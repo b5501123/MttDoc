@@ -362,7 +362,7 @@ ICM 考量使你更傾向棄牌，即使純 EV 上略虧
 
 如果對手有 Set J（三條 J），你的勝率：
 → 你有：順子（完成）+ 同花聽牌（完成後 Flush > Set）
-→ 你的順子暫時落後 Set J（Set > Straight in Short Deck）
+→ 你的順子暫時領先 Set J（Straight > Set in Short Deck）
 → 你需要完成同花才能贏：5 Outs ≈ 16%（轉牌），30%（兩次機會）
 
 結論：跟注合理，但不必全押（等到同花完成後再大注）
