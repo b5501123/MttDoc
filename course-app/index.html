@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="撲克教材" />
+    <title>撲克教材閱讀器</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="section-reader">
+    <div class="reader-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div id="brandMark" class="brand-mark">PK</div>
+          <div>
+            <h1 id="screenTitle">教材閱讀</h1>
+            <p id="libraryStats">載入教材中...</p>
+          </div>
+        </div>
+        <button id="toggleIndex" class="icon-btn" aria-label="切換目錄">目錄</button>
+      </header>
+
+      <aside id="indexPane" class="index-pane">
+        <div class="search-box">
+          <input id="searchInput" type="search" placeholder="搜尋章節、檔名、PKO、ICM..." />
+          <div id="courseTabs" class="course-tabs" aria-label="課程切換"></div>
+        </div>
+        <div id="chapterList" class="chapter-list"></div>
+      </aside>
+
+      <main class="content-pane">
+        <section id="sectionReader" class="app-section active">
+          <div class="reader-toolbar">
+            <button id="prevDoc" class="toolbar-btn">上一篇</button>
+            <button id="fontMinus" class="toolbar-btn">A-</button>
+            <button id="fontPlus" class="toolbar-btn">A+</button>
+            <button id="nextDoc" class="toolbar-btn">下一篇</button>
+          </div>
+
+          <article id="reader" class="markdown-body">
+            <h2>選擇一篇教材</h2>
+            <p>左側或下方目錄會列出 `docs/mtt` 的全部 Markdown 教材。APK 內已內建教材，不需要網路。</p>
+          </article>
+        </section>
+
+        <section id="sectionPath" class="app-section">
+          <div class="hub-card">
+            <p class="eyebrow">Learning Path</p>
+            <h2>學習路線</h2>
+            <p id="pathIntro">用「先概念、再範圍、再情境、最後複盤」的順序讀。手機上不要一次讀完，照階段切。</p>
+          </div>
+          <div id="routeList" class="route-list"></div>
+        </section>
+
+        <section id="sectionQuick" class="app-section">
+          <div class="hub-card">
+            <p class="eyebrow">Quick Reference</p>
+            <h2>速查表</h2>
+            <p id="quickIntro">比賽中或賽前快速看。這裡只放最常用入口，不取代完整教材。</p>
+          </div>
+          <div id="quickGrid" class="quick-grid"></div>
+        </section>
+
+        <section id="sectionPractice" class="app-section">
+          <div class="hub-card">
+            <p class="eyebrow">Practice</p>
+            <h2>練習題</h2>
+            <p>題庫已在教材內建。建議每次只做 10 題，錯題用複盤標籤回補教材。</p>
+          </div>
+          <div id="practiceList" class="route-list"></div>
+        </section>
+
+        <section id="sectionReview" class="app-section">
+          <div class="hub-card">
+            <p class="eyebrow">Review Loop</p>
+            <h2>複盤</h2>
+            <p id="reviewIntro">複盤不是記結果，是找錯誤類型。每手牌先判斷 effective stack，再判斷位置、賞金、ICM。</p>
+          </div>
+          <div id="reviewBoard" class="review-board"></div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="主要導航">
+        <button class="bottom-nav-btn active" data-section="reader">教材閱讀</button>
+        <button class="bottom-nav-btn" data-section="path">學習路線</button>
+        <button class="bottom-nav-btn" data-section="quick">速查表</button>
+        <button class="bottom-nav-btn" data-section="practice">練習題</button>
+        <button class="bottom-nav-btn" data-section="review">複盤</button>
+      </nav>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

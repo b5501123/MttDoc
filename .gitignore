@@ -1,0 +1,29 @@
+# Local secrets and machine-specific config
+.codex/
+**/.codex/
+**/local.properties
+
+# Dependencies
+**/node_modules/
+
+# One-off generation helpers and screenshots
+cash-game/_generate-course.mjs
+course-app/demo-shots/
+course-app/demo-shots-nav/
+course-app/demo-shots-reader/
+
+# Web and Android build outputs
+course-app/www/
+course-app/releases/
+course-app/android/.gradle/
+course-app/android/**/build/
+course-app/android/app/src/main/assets/
+
+# Packaged binaries
+*.apk
+*.zip
+
+# Runtime logs and temporary files
+*.log
+*.tmp
+*.bak

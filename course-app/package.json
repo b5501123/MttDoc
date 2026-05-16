@@ -1,0 +1,22 @@
+{
+  "name": "mtt-course-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Poker mobile course app packaged with Capacitor.",
+  "type": "module",
+  "scripts": {
+    "build:web": "node scripts/build-www.mjs",
+    "serve": "node server.mjs",
+    "sync": "npm run build:web && npx cap sync android",
+    "open:android": "npx cap open android",
+    "build:apk": "npm run sync && cd android && gradlew.bat assembleDebug",
+    "build:tg": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release-package.ps1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1"
+  }
+}

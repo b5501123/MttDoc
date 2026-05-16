@@ -1,0 +1,13 @@
+.codex/
+node_modules/
+www/
+demo-shots/
+demo-shots-nav/
+demo-shots-reader/
+releases/
+*.apk
+*.zip
+android/local.properties
+android/.gradle/
+android/**/build/
+android/app/src/main/assets/
