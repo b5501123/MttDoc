@@ -76,12 +76,91 @@ function labelClass(label) {
   return `label-${String(label).toLowerCase().replace("+", "p").replace(/[^a-z0-9]+/g, "-")}`;
 }
 
+const actionPalette = {
+  Allin: "#7f2a25",
+  Raise: "#d84b43",
+  "3Bet": "#b65fcf",
+  Call: "#4f8fc8",
+  Fold: "#75ad68"
+};
+const actionOrder = ["Allin", "Raise", "3Bet", "Call", "Fold"];
+
+function handCombos(hand) {
+  if (hand[0] === hand[1]) return 6;
+  return hand.endsWith("s") ? 4 : 12;
+}
+
+function strategyForLabel(label, spot) {
+  const s = String(spot || "").toLowerCase();
+  if (label === "AI" || label === "RJ") return [{ action: "Allin", pct: 100 }];
+  if (label === "3B") return [{ action: "3Bet", pct: 100 }];
+  if (label === "C") return [{ action: "Call", pct: 100 }];
+  if (label === "R+" || label === "R" || label === "RC" || label === "RF") return [{ action: "Raise", pct: 100 }];
+  if (label === "M") {
+    if (s.includes("push") || s.includes("rejam")) return [{ action: "Allin", pct: 50 }, { action: "Fold", pct: 50 }];
+    if (s.includes("bb defend")) return [{ action: "Call", pct: 50 }, { action: "Fold", pct: 50 }];
+    return [{ action: "Raise", pct: 50 }, { action: "Fold", pct: 50 }];
+  }
+  return [{ action: "Fold", pct: 100 }];
+}
+
+function cellGradient(actions) {
+  let start = 0;
+  const stops = actions.map((item) => {
+    const end = start + item.pct;
+    const color = actionPalette[item.action] || actionPalette.Fold;
+    const stop = `${color} ${start}% ${end}%`;
+    start = end;
+    return stop;
+  });
+  return `background: linear-gradient(90deg, ${stops.join(", ")});`;
+}
+
+function strategyGroups(range) {
+  const groups = Object.fromEntries(actionOrder.map((action) => [action, []]));
+  for (let rowIndex = 0; rowIndex < ranks.length; rowIndex += 1) {
+    for (let colIndex = 0; colIndex < ranks.length; colIndex += 1) {
+      const hand = handAt(rowIndex, colIndex);
+      const label = range.hands[hand] || "F";
+      for (const item of strategyForLabel(label, range.spot)) {
+        if (item.pct <= 0) continue;
+        groups[item.action].push({ hand, label, pct: item.pct });
+      }
+    }
+  }
+  return groups;
+}
+
+function renderStrategyGroups(range) {
+  const groups = strategyGroups(range);
+  return actionOrder
+    .filter((action) => groups[action].length)
+    .map((action) => {
+      const hands = groups[action]
+        .map((item) => `<span class="strategy-hand" title="${escapeHtml(item.label)}">
+          <strong>${escapeHtml(item.hand)}</strong>
+          ${item.pct < 100 ? `<small>${item.pct}%</small>` : ""}
+        </span>`)
+        .join("");
+      return `<section class="strategy-group action-${action.toLowerCase()}">
+        <h3><i style="background:${actionPalette[action]};"></i>${escapeHtml(action)}</h3>
+        <div class="strategy-hand-list">${hands}</div>
+      </section>`;
+    })
+    .join("");
+}
+
 function renderRangeHtml(range) {
+  const strategyList = renderStrategyGroups(range);
   const cells = ranks.map((_, rowIndex) => {
     const tds = ranks.map((__, colIndex) => {
       const hand = handAt(rowIndex, colIndex);
       const label = range.hands[hand] || "F";
-      return `<td class="range-cell ${labelClass(label)}"><span class="hand">${escapeHtml(hand)}</span><span class="tag">${escapeHtml(label)}</span></td>`;
+      const actions = strategyForLabel(label, range.spot);
+      const combos = handCombos(hand);
+      return `<td class="range-cell ${labelClass(label)} ${label === "F" ? "is-fold" : ""}" style="${cellGradient(actions)}" data-hand="${escapeHtml(hand)}" data-label="${escapeHtml(label)}" data-combos="${combos}" data-actions="${escapeHtml(JSON.stringify(actions))}" title="${escapeHtml(`${hand} ${label}`)}">
+        <span class="hand">${escapeHtml(hand)}</span>
+      </td>`;
     }).join("");
     return `<tr><th>${escapeHtml(ranks[rowIndex])}</th>${tds}</tr>`;
   }).join("");
@@ -95,7 +174,7 @@ function renderRangeHtml(range) {
 
   return `<section class="range-page">
   <header class="range-header">
-    <p class="range-eyebrow">13x13 Range Table</p>
+    <p class="range-eyebrow">13x13 Strategy Matrix</p>
     <h2>${escapeHtml(range.title)}</h2>
     <div class="range-meta">
       <span><strong>Game</strong>${escapeHtml(range.game)}</span>
@@ -107,23 +186,43 @@ function renderRangeHtml(range) {
     </div>
   </header>
 
-  <div class="range-grid-wrap">
-    <table class="range-grid" aria-label="${escapeHtml(range.title)}">
-      <thead>${header}</thead>
-      <tbody>${cells}</tbody>
-    </table>
+  <section class="range-matrix-panel">
+    <div class="range-toolbar">
+      <strong>範圍</strong>
+      <span>每格用色塊比例顯示行動頻率，紅色代表進攻，綠色代表棄牌或保守線。</span>
+    </div>
+    <div class="range-action-legend">
+      ${Object.entries(actionPalette).map(([action, color]) => `<span><i style="background:${color};"></i>${escapeHtml(action)}</span>`).join("")}
+    </div>
+    <div class="range-grid-wrap">
+      <table class="range-grid" aria-label="${escapeHtml(range.title)}">
+        <thead>${header}</thead>
+        <tbody>${cells}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="range-strategy-list">
+    <div class="range-section-title">
+      <h3>策略手牌清單</h3>
+      <p>主表只顯示牌型；完整行動分組放在這裡，mixed hand 會同時出現在兩個行動中並標出比例。</p>
+    </div>
+    ${strategyList}
+  </section>
+
+  <div class="range-info-grid">
+    <section class="range-legend">
+      <h3>標籤</h3>
+      ${legend}
+    </section>
+
+    <section class="range-notes">
+      <h3>使用規則</h3>
+      <ul>${notes}</ul>
+      <h3>邊界手牌</h3>
+      <ul>${boundary}</ul>
+    </section>
   </div>
-
-  <section class="range-legend">
-    ${legend}
-  </section>
-
-  <section class="range-notes">
-    <h3>使用規則</h3>
-    <ul>${notes}</ul>
-    <h3>邊界手牌</h3>
-    <ul>${boundary}</ul>
-  </section>
 </section>`;
 }
 

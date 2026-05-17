@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+﻿import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -273,155 +273,28 @@ function generatePushFoldRanges() {
   }
 }
 
-function lesson({ title, spot, rules, ranges, mistakes, drills }) {
+function coreLesson({ title, purpose, body, rangeRefs, examples, checkpoints, drills }) {
   return `# ${title}
 
-## 場景設定
+## 本章要解決的問題
 
-${spot}
+${purpose}
 
-## 你要先記住的規則
+## 主線教材
 
-${rules.map((x) => `- ${x}`).join("\n")}
+${body.trim()}
 
-## Range 表
-
-${ranges.map((x) => `- ${x}`).join("\n")}
-
-## 邊界手牌
-
-邊界手牌不是背答案，而是看 stack、ICM、盲位玩家與 opener 類型做調整。每次遇到 mixed hand，先問：如果被 rejam，我是否知道要不要跟？如果答案是否定，這手牌通常不該無腦 open。
-
-## 常見錯誤
-
-${mistakes.map((x) => `- ${x}`).join("\n")}
-
-## 練習
-
-${drills.map((x, i) => `${i + 1}. ${x}`).join("\n")}
-`;
-}
-
-function generateLessons() {
-  const lessons = [
-    ["00-使用方式/00-課程索引.md", lesson({
-      title: "MTT v2 課程索引",
-      spot: "本課程只針對線上 NLH MTT、Big Blind Ante、8-max / 9-max、多桌環境。舊版文章式教材不作為 v2 內容來源。",
-      rules: ["先學 stack mode，再學單張手牌。", "每個 preflop spot 都必須連到 range 表。", "Range 是 baseline，不是永遠不變的命令。", "練習題要能反推你是否真的懂 range。"],
-      ranges: ["先看 RFI，再看 BB defend，再看 rejam / push-fold。", "範圍表頁可依 stack、spot、position 搜尋。"],
-      mistakes: ["只讀文章不看表。", "把 40BB open range 套到 20BB。", "用 push range 去 call shove。"],
-      drills: ["打開 25BB BTN RFI，列出三手 raise-call 和三手 raise-fold。", "打開 10BB CO Push/Fold，說明 KTo 是否可推。"]
-    })],
-    ["00-使用方式/01-13x13範圍表怎麼讀.md", lesson({
-      title: "13x13 範圍表怎麼讀",
-      spot: "所有 preflop 範圍表使用 13x13 grid。對子在對角線，suited 在一側，offsuit 在另一側。",
-      rules: ["每格一定有文字標籤，不只靠顏色。", "`R+` 是強制 open；`M` 是要看桌況。", "`RC` 代表 raise-call all-in，不是單純 raise。", "`RF` 代表可以 open，但被推要 fold。", "`AI` 是直接 all-in。"],
-      ranges: ["任一 RFI 表。", "任一 Push/Fold 表。"],
-      mistakes: ["只看顏色不看標籤。", "把 mixed hand 當必打。", "看到 Axs 就不看位置和 stack。"],
-      drills: ["在 20BB HJ RFI 中找出 A5s 的標籤並解釋。", "在 15BB SB 表中找出 Q8o 是否可推。"]
-    })],
-    ["01-Preflop總論/01-StackMode決策地圖.md", lesson({
-      title: "Stack Mode 決策地圖",
-      spot: "線上 BBA MTT 中，effective stack 比盲注級別更重要。同一手 AJo 在 60BB、30BB、15BB 完全不是同一個決策。",
-      rules: ["60BB 仍可保留 postflop edge。", "40BB 是標準中碼，要有 3bet pot 計畫。", "30BB 開始不能亂 3bet/fold。", "25BB open 前必須知道是否跟 rejam。", "15BB 以下進入 push/fold 主導。"],
-      ranges: ["RFI 40BB / 25BB / 15BB 對照。", "Rejam 25BB vs CO / BTN。", "Push/Fold 12BB / 10BB / 8BB。"],
-      mistakes: ["用深碼 suited connector 邏輯打 20BB。", "25BB BTN open 後被 BB jam 才開始想。", "15BB 還想用小 raise 打複雜 postflop。"],
-      drills: ["你 25BB CO KJo，盲位有 18BB aggressive stack，先找表再決定。", "你 15BB HJ A9o，判斷是 shove、min-raise 還是 fold。"]
-    })],
-    ["02-RFI範圍/01-RFI不是背表.md", lesson({
-      title: "RFI 不是背表",
-      spot: "所有人 fold 到你，線上 9-max BBA，effective stack 依表格。你要決定 open、shove、mixed 或 fold。",
-      rules: ["前位 range 先保護自己不被後位 3bet。", "後位 range 主要攻擊盲位 dead money。", "stack 越短，raise-fold 成本越高。", "ICM 下先收緊 call-off，再收邊界 open。"],
-      ranges: ["60BB 9-max RFI 全位置。", "25BB 9-max RFI 全位置。", "15BB 9-max RFI 全位置。"],
-      mistakes: ["CO/BTN 因 BBA 亂開 offsuit trash。", "UTG 用後位 range。", "不看左側 stack 和 rejam 頻率。"],
-      drills: ["40BB HJ KJo 是否 open？", "25BB CO A7s 面對兩個 18BB 盲位怎麼調整？", "15BB UTG KQo 是否可推？"]
-    })],
-    ["03-BB防守/01-BB防守不是保護盲注.md", lesson({
-      title: "BB 防守不是保護盲注",
-      spot: "你在 BB，已投入 BB，且 BBA 結構讓底池更大。面對 HJ / CO / BTN open，你要選 fold、call、3bet 或 rejam。",
-      rules: ["BB 有價格，但 OOP realization 很差。", "面對越後位 open 防守越寬。", "25BB 以下 call 價值下降，rejam 價值上升。", "ICM 下 BB call-off 需要比 chip EV 更緊。"],
-      ranges: ["40BB BB vs BTN。", "25BB BB vs CO。", "20BB BB vs HJ。"],
-      mistakes: ["看到 suited 就 defend。", "用 cash game BB defend 套 MTT。", "20BB BB call 太多，錯過 rejam。"],
-      drills: ["25BB BB A5s vs BTN min-open 如何處理？", "40BB BB K8o vs HJ open 是否 defend？", "20BB BB 55 vs CO open 是否 rejam？"]
-    })],
-    ["04-Rejam/01-Rejam三要素.md", lesson({
-      title: "Rejam 三要素",
-      spot: "前面玩家 open，你在後位或盲位，effective stack 15-25BB。你要判斷是否 all-in rejam。",
-      rules: ["Rejam 需要 fold equity。", "Opener 越後位，你可以越寬。", "背後玩家越多，你要越緊。", "Blocker 重要，但不能取代 fold equity。", "ICM 壓力會先砍掉邊界 Ax/Kx。"],
-      ranges: ["25BB Rejam vs CO / BTN / SB。", "20BB Rejam vs CO / BTN / SB。", "15BB Rejam vs CO / BTN / SB。"],
-      mistakes: ["用弱 Ax 對 tight UTG rejam。", "小對該推不敢推。", "沒看背後大碼玩家。"],
-      drills: ["20BB BTN A5s vs CO open 是否 rejam？", "25BB SB KTo vs BTN open 怎麼處理？", "15BB BB 33 vs SB open 是否 rejam？"]
-    })],
-    ["05-PushFold/01-短碼不是等AA.md", lesson({
-      title: "短碼不是等 AA",
-      spot: "你剩 12BB / 10BB / 8BB，在 BBA MTT。Action fold 到你，你要決定直接 shove 或 fold。",
-      rules: ["Shove range 比 call shove 寬。", "BBA dead money 讓偷盲價值提高。", "越靠後位越寬。", "ICM 下 bubble call-off 收很緊，但 open shove 不一定同步收同樣多。"],
-      ranges: ["12BB Push/Fold 全位置。", "10BB Push/Fold 全位置。", "8BB Push/Fold 全位置。"],
-      mistakes: ["8BB BTN 還 min-raise/fold。", "用 push range 去 call UTG all-in。", "短碼等太久讓 fold equity 消失。"],
-      drills: ["10BB CO A7o 是否 shove？", "8BB SB Q7o 是否 shove？", "12BB UTG 44 是否 shove？"]
-    })],
-    ["06-ICM/01-ICM先影響CallOff.md", lesson({
-      title: "ICM 先影響 Call-off",
-      spot: "接近 bubble、pay jump 或 final table。你面對 all-in 或可能被迫打光。",
-      rules: ["ICM 對 call-off 的影響通常大於 open。", "中碼最怕跟大碼打大底池。", "大碼可以施壓，但不能無腦亂開。", "短碼要找 fold equity，不是等死。"],
-      ranges: ["先用 chip EV 表，再按 ICM 收掉 mixed call-off。", "Push/Fold 表不可直接當 bubble call 表。"],
-      mistakes: ["中碼用 chip EV call-off。", "大碼亂開被另一個大碼反制。", "短碼過度等 pay jump。"],
-      drills: ["FT 7 left，中碼 AJo 面對 cover 你的 CO jam 是否 call？", "Bubble 大碼 BTN K7s 是否可 open？"]
-    })],
-    ["07-PKO/01-Bounty不是免死金牌.md", lesson({
-      title: "PKO Bounty 不是免死金牌",
-      spot: "PKO MTT，你 cover 對手或被對手 cover。你要評估 bounty 是否讓 call / rejam 變寬。",
-      rules: ["只有 cover 對手才有 bounty equity。", "Bounty 可放寬 call，但 dominated hand 仍會輸大。", "越後期 bounty 相對籌碼價值越要重新估算。", "不 cover 時回到普通 MTT range。"],
-      ranges: ["先用 chip EV call range，再依 bounty 做一層調整。", "Rejam 表中的 mixed hand 是 PKO 最常調整區。"],
-      mistakes: ["不 cover 還為 bounty 亂 call。", "用 KTo/A2o 追任何短碼 bounty。", "忽略背後玩家。"],
-      drills: ["你 cover 8BB 對手，BTN jam，你 BB A8o 是否 call？", "你不 cover CO，面對 all-in 是否還能用 bounty 理由跟？"]
-    })],
-    ["08-PostflopSPR/01-SPR決定承諾點.md", lesson({
-      title: "SPR 決定承諾點",
-      spot: "MTT postflop 不只看牌面，也要看 preflop 後剩多少 stack。30BB SRP 和 100BB SRP 的 top pair 不是同一種牌。",
-      rules: ["SPR 越低，top pair / overpair 越接近承諾。", "SPR 高時，單對牌不能無腦三街。", "短碼 postflop 常是 flop bet 後 turn all-in。", "下注 size 必須先想下一街 stack。"],
-      ranges: ["Postflop 沒有 13x13，但要回到 preflop range 看誰有 nut advantage。"],
-      mistakes: ["20BB TPTK 還想 pot control 三街。", "100BB overpair 在濕牌面打光。", "Flop c-bet 沒想 turn SPR。"],
-      drills: ["30BB BTN open BB call，flop K72r 你 KQ，下注後 turn SPR 多少？", "40BB 3bet pot AA 在 987ss 是否自動打光？"]
-    })],
-    ["09-線上多桌/01-Default與Exploit.md", lesson({
-      title: "線上多桌 Default 與 Exploit",
-      spot: "你在多桌線上 MTT，資訊有限。你需要先有 default range，再依玩家傾向小幅調整。",
-      rules: ["Unknown 先用 baseline。", "盲位過緊可放寬 steal。", "盲位 rejam 過高要收掉 RF。", "對 under-bluff player，river bluff-catch 降低。", "不要用單一 showdown 過度調整。"],
-      ranges: ["所有 mixed hand 都是 exploit 調整入口。", "RFI 表中 M / RF 的牌最受桌況影響。"],
-      mistakes: ["因一手牌就改整套 range。", "多桌時用情緒 call。", "看到 tight blind 卻不偷。"],
-      drills: ["BTN 25BB，BB fold to steal 很高，哪些 M hand 可加入 open？", "SB 20BB aggressive rejam，你 CO 應收哪些 RF？"]
-    })]
-  ];
-  for (const [path, content] of lessons) write(`lessons/${path}`, content);
-}
-
-function focusedLesson({ title, scene, concepts, process, rangeRefs, edges, mistakes, drills }) {
-  return `# ${title}
-
-## 場景設定
-
-${scene}
-
-## 核心觀念
-
-${concepts.map((x) => `- ${x}`).join("\n")}
-
-## 操作流程
-
-${process.map((x, i) => `${i + 1}. ${x}`).join("\n")}
-
-## Range 表
+## 本章要用的 Range 表
 
 ${rangeRefs.map((x) => `- ${x}`).join("\n")}
 
-## 邊界手牌
+## 實戰手牌串講
 
-${edges.map((x) => `- ${x}`).join("\n")}
+${examples.map((x, i) => `### Hand ${i + 1}\n\n${x}`).join("\n\n")}
 
-## 常見錯誤
+## 讀完要能回答
 
-${mistakes.map((x) => `- ${x}`).join("\n")}
+${checkpoints.map((x) => `- ${x}`).join("\n")}
 
 ## 練習
 
@@ -429,327 +302,287 @@ ${drills.map((x, i) => `${i + 1}. ${x}`).join("\n")}
 `;
 }
 
-function generateFocusedLessons() {
+function generateCoreLessons() {
   const lessons = [
-    ["02-RFI範圍/02-60BB深碼RFI.md", focusedLesson({
-      title: "60BB 深碼 RFI：先保留後手優勢",
-      scene: "Effective stack 60BB，線上 BBA MTT，前面玩家都 fold 到你。這個深度仍然有 postflop 操作空間，open range 可以包含可玩性手牌，但不能把所有 suited hand 都當成印鈔機。",
-      concepts: ["60BB 的 open 目標是取得 position、隔離弱盲位、保留後手優勢。", "前位被 domination 的 offsuit broadway 要保守，後位才開始大量偷盲。", "小對與 suited connector 的價值來自 implied odds，但面對 squeeze 高的桌子會下降。", "深碼不是寬到失控，而是允許更多可玩性。"],
-      process: ["先確認位置，UTG/LJ 不偷盲，CO/BTN 才是攻擊位。", "看左側 3bet/squeeze 傾向，過高就砍掉低 suited connector。", "判斷盲位是否過緊，過緊才把 M hand 加入 open。", "open 後先規劃被 3bet 的 continue range。"],
-      rangeRefs: ["60BB 9-max UTG/LJ/HJ RFI。", "60BB 9-max CO/BTN/SB RFI。"],
-      edges: ["A9o/AJo：位置越前越容易 dominated。", "KTo/KJo：後位可偷，前位少碰。", "22-55：深碼可開，但左側 squeeze 高要收。", "65s/54s：需要 position 與弱盲位支撐。"],
-      mistakes: ["看到 60BB 就用 cash game 邏輯開太寬。", "UTG 開 KJo、QJo 後被後位壓力懲罰。", "在 aggressive 左側玩家前面開太多低 suited connector。"],
-      drills: ["60BB HJ 44，左側 BTN 3bet 很高，是否仍 open？", "60BB BTN 75s，兩個盲位 fold to steal 高，如何處理？", "60BB UTG AJo，在 tough table 是否要降頻？"]
+    ["00-主線課程/00-怎麼學這套MTT.md", coreLesson({
+      title: "怎麼學這套 MTT：從一手牌到整場比賽",
+      purpose: "這套課不是一堆獨立文章，而是一條固定決策線。你每次打牌都照同一個順序：先看有效籌碼，再看 action，接著找 range 分層，最後才用桌況、ICM、PKO 做調整。",
+      body: `
+你之前會覺得教材無法學，是因為它把知識切成太多小片段。MTT 的核心不是知道很多名詞，而是每一手牌都能用同一套流程處理。這版教材只保留主線課程，範圍表是工具，測驗是檢查點，不再讓學習路線被碎片打散。
+
+第一個固定問題是有效籌碼。線上 BBA MTT 中，真正決定策略的是 effective stack，不是你帳面上總共有多少 BB。如果你有 60BB，BB 只有 20BB，你跟 BB 對抗時就是 20BB 策略。這會直接改變 open、rejam、BB defend、postflop commitment。
+
+第二個固定問題是 action 類型。所有 preflop 先分成四種：first-in、面對 open、面對 all-in、已進入 postflop。first-in 看 RFI 或 push/fold；面對 open 看 BB defend、3bet、rejam；面對 all-in 不能拿 open range 直接 call；postflop 要回到 preflop range 與 SPR。
+
+第三個固定問題是 range 分層。R+ 是高頻或強制打，R 是標準 baseline，M 是桌況調整，RF 是 raise-fold，RC 是 raise-call all-in，RJ 是 rejam，AI 是 first-in shove。你不是背每一格，而是先知道每個標籤代表什麼風險。
+
+第四個固定問題是調整。調整只動邊界，不重寫整套策略。盲位過緊時，後位 M hand 加頻；盲位 rejam 高時，RF 底部收掉；ICM 壓力高時，先收 call-off，再收邊界 open；PKO 只有在你 cover 對手時才讓 bounty 影響 call。
+
+學習順序是：讀一章主線，開本章 range 表，做三手串講，最後做測驗。不要先從 69 張表開始背，這會重新變成碎片學習。你要先理解「為什麼這個 spot 要這樣分層」，再把範圍表當作標準答案的索引。
+      `,
+      rangeRefs: ["所有 RFI 表作為 first-in 起點。", "BB defend、Rejam、Push/Fold 表作為不同 action 類型的分流工具。"],
+      examples: [
+        "25BB BTN KJo，前面 fold 到你。你不是先問 KJo 強不強，而是先問：這是 first-in，effective stack 25BB，BTN，盲位是否有 rejam stack。查 25BB BTN RFI 後，KJo 多數是 RF 或標準 open，但若 BB 20BB aggressive，底部要收。",
+        "20BB BB 55 面對 CO open。這不是保護盲注問題，而是面對 open、effective stack 20BB、OOP realization 差。查 BB defend vs CO 與 20BB rejam，55 常比 call 更適合 rejam，因為你用 fold equity 直接實現牌力。",
+        "10BB CO A7o，前面 fold 到你。這是 first-in short stack，不是 call shove。查 10BB CO Push/Fold，A7o 通常可 shove。但如果 bubble 中盲位 call 太鬆，要收底部 offsuit。"
+      ],
+      checkpoints: ["你能不能在 5 秒內分辨這手是 RFI、BB defend、rejam、push/fold、call-off 還是 postflop。", "你能不能說出 RF 和 RC 的差別。", "你能不能解釋為什麼 push range 不能直接當 call shove range。"],
+      drills: ["任選 10 手牌，只分類 action 類型，不判斷對錯。", "打開任一 RFI 表，把 R+、R、M、RF、RC 各找三手牌。", "用一手牌寫出：effective stack、action 類型、range 表、調整原因。"]
     })],
-    ["02-RFI範圍/03-40BB中深碼RFI.md", focusedLesson({
-      title: "40BB 中深碼 RFI：開始重視反擊成本",
-      scene: "Effective stack 40BB。你仍可 open/fold，但 3bet pot 的 SPR 已下降，邊界手牌被反擊時更難舒服防守。",
-      concepts: ["40BB 是線上 MTT 最常見的工作深度。", "後位仍可偷盲，但要知道哪些牌能面對 3bet。", "前位 open 被 3bet 時，不要用 dominated offsuit broadway 硬撐。", "小對不再單靠 set mining 支撐所有 open。"],
-      process: ["先用 40BB RFI 表找 baseline。", "標記 R+、R、M，M hand 只在盲位偏緊或桌子偏被動時加入。", "面對 3bet，先把 value continue 與 fold 分清楚。", "若後面有 20BB aggressive stack，要預先規劃被 rejam。"],
-      rangeRefs: ["40BB 9-max RFI 全位置。", "40BB BB defend vs HJ/CO/BTN。"],
-      edges: ["AJo：HJ 以後較自然，UTG/LJ 要看桌況。", "KQo：前位可開但怕被 3bet；後位價值上升。", "T9s/98s：位置好才舒服。", "22-44：面對短碼盲位時不再純靠 set value。"],
-      mistakes: ["40BB BTN 亂開，卻不知道被 18BB jam 要不要跟。", "CO 開太多低 offsuit Kx。", "把 40BB 當 100BB 打，postflop 過度浮動。"],
-      drills: ["40BB CO KTo，BB 18BB aggressive，是否 open？", "40BB LJ 66，後面有兩個 25BB rejam stack，如何調整？", "40BB BTN Q8o，兩盲都 tight，是否加入？"]
+    ["00-主線課程/01-有效籌碼與StackMode.md", coreLesson({
+      title: "有效籌碼與 Stack Mode：MTT 的主控旋鈕",
+      purpose: "同一手 AJo 在 60BB、30BB、20BB、10BB 完全不是同一手牌。本章把所有深度串成一條連續邏輯，避免你把某個表拿去套全部情境。",
+      body: `
+60BB 是仍能打 postflop 的深度。你可以 open 小對、suited connector、部分 suited gapper，因為有位置時能實現 equity，也有 implied odds。但 60BB 不是 cash game 100BB，MTT 的籌碼價值仍不線性，尤其接近 bubble 或 pay jump 時，不能只用深碼想法打光。
+
+40BB 是標準中碼。這時你仍然有 open/fold 空間，但 3bet pot 的 SPR 已經下降，後位 aggressive player 會開始用 3bet 或 squeeze 懲罰太寬的 open。前位要收掉 dominated offsuit broadway，後位可以攻擊盲位，但要知道被 3bet 或 rejam 後的 continue range。
+
+30BB 是轉換區。你不能亂 3bet/fold，也不能只因為 BTN 有位置就亂開。30BB 的 open 還可以小 raise，但每一次 open 都要看盲位是否有 15-25BB rejam stack。很多原本深碼可以靠 postflop 實現的手牌，在 30BB 會變得尷尬。
+
+25BB 是壓力區。這裡最重要的概念是 open 前先知道被 jam 要不要跟。RFI 表中的 RC 與 RF 開始變成核心語言。你不是問「這手能不能開」，而是問「這手開了之後，對哪一種 rejam 要跟，對哪一種要棄」。
+
+20BB 是短中碼。很多 call 會變差，因為 call 之後 SPR 很低，位置外很難實現 equity。你要更常用 rejam 把決策推回給 opener。這個深度的錯誤通常是用 40BB 的可玩性手牌去開，或用 BB call 去保護盲注，結果錯過 fold equity。
+
+15BB 以下進入短碼主導。first-in shove、rejam、fold equity 變成主線。短碼不是等 AA，因為等牌會讓你從 15BB 掉到 8BB，再掉到 5BB，最後連 fold equity 都沒有。你要在還能讓對手 fold 的時候主動拿底池。
+      `,
+      rangeRefs: ["60BB / 40BB / 30BB / 25BB / 20BB / 15BB RFI 全位置。", "25BB / 20BB / 15BB Rejam。", "12BB / 10BB / 8BB Push/Fold。"],
+      examples: [
+        "60BB CO 76s，兩盲 tight。這手可以 open，因為有 position、有 implied odds，盲位過緊也提高 steal EV。但若 BTN 3bet 很高，76s 會從 open 變成 fold 或低頻。",
+        "25BB BTN A8o，BB 20BB aggressive。A8o 看起來能偷，但被 rejam 後很不舒服。這時要看它是 RF 還是 M，若盲位推太高，A8o 這類底部 offsuit ace 要收。",
+        "12BB HJ KJo。這不是 25BB open/fold 的 spot，而是 push/fold。若前面 fold 到你，KJo 多數可 shove；但如果是面對 UTG shove，KJo 不能因為自己可推就自動 call。"
+      ],
+      checkpoints: ["你能不能說出 60、40、30、25、20、15、10BB 的策略差異。", "你能不能解釋為什麼 25BB open 前要先知道 call-off。", "你能不能分辨 first-in shove 和 call shove。"],
+      drills: ["用 AJo 分別寫出 60BB、30BB、20BB、10BB 的基本計畫。", "列出三手 25BB BTN 可 open 但不想 call rejam 的牌。", "找出一手你過去 15BB 還 min-raise/fold 的錯誤。"]
     })],
-    ["02-RFI範圍/04-30BB轉換區RFI.md", focusedLesson({
-      title: "30BB 轉換區 RFI：不要亂 3bet/fold",
-      scene: "Effective stack 30BB。這是從 postflop 主導轉向 preflop 壓力的轉換區，open 後面對 rejam 的成本明顯提高。",
-      concepts: ["30BB open 仍可小 raise，但不能把邊界牌當自動偷盲。", "後位 steal 仍重要，但要看盲位 stack 是否能 rejam。", "非 all-in 3bet bluff 的空間下降。", "被 jam 時，call-off 不是憑感覺，而是由 blocker、equity、ICM 決定。"],
-      process: ["先看 30BB RFI 表。", "把 RC/RF 思維提前套到後位 open。", "盲位若 15-25BB，先預測他們 rejam range。", "對過度防守盲位，砍掉 lowest offsuit steals。"],
-      rangeRefs: ["30BB 9-max RFI 全位置。", "25BB Rejam vs CO/BTN/SB 作為壓力參考。"],
-      edges: ["A8s/A9s：有 blocker，但被 call 時 equity 未必好。", "KJo/QJo：後位偷盲可用，前位容易 dominated。", "小對：不再只為中 set open。", "T8s/97s：需要盲位 fold equity。"],
-      mistakes: ["30BB 仍用大量 suited gapper steal。", "被 20BB BB jam 才開始算。", "拿 KJo 跟 tight rejam 硬碰。"],
-      drills: ["30BB BTN A2o，SB 20BB aggressive，BB 35BB tight，如何處理？", "30BB HJ T9s，CO/BTN 都愛 3bet，是否 open？", "30BB SB K9o 對 tight BB 是否可 raise-fold？"]
+    ["00-主線課程/02-RFI完整主線.md", coreLesson({
+      title: "RFI 完整主線：不是背開局表，是先規劃被反擊",
+      purpose: "RFI 是所有 MTT preflop 的起點，但它不是獨立表格。本章把前位、中位、後位、SB 與 stack mode 串在一起，讓你知道每次 first-in 的完整計畫。",
+      body: `
+RFI 的第一條線是位置。UTG/LJ 不是偷盲位置，range 必須能承受後面多人 3bet、cold call、squeeze。HJ 是半偷盲，CO 開始大量攻擊盲位，BTN 是最有位置優勢的 steal spot，SB 則只剩 BB 一人但出位置外。
+
+前位 RFI 的錯誤通常是 dominated offsuit broadway。KJo、QJo、A9o 這些牌在前位看似不差，但被後位 call 或 3bet 時很難實現 equity。前位應該偏向強 broadway、suited broadway、中高對子。深碼時可以加小對與少量 suited connector，短碼時要更注重被推後的計畫。
+
+中後位 RFI 的核心是偷盲與反偷盲的平衡。CO/BTN 可以打更多 M hand，但每一手都要看盲位 stack。如果盲位是 20BB aggressive player，你的 RF 底部會被懲罰；如果盲位過緊，你的 M hand 可以加頻。
+
+SB RFI 不能直接用 BTN 思維。SB 只剩 BB 一個對手，所以 steal incentive 很高，但你沒有 position，BB defend 太鬆時，弱 offsuit hand 會很難打。SB 對 tight BB 可以放寬，對會 rejam 的 BB 要先收 RF。
+
+RFI 的第二條線是 stack。60BB 可以用可玩性賺 postflop，40BB 要重視 3bet pot，30BB 要小心 rejam stack，25BB 必須分 RC/RF，20BB 底部收緊，15BB 常進入直接 shove 或非常清楚的 raise-call。
+      `,
+      rangeRefs: ["RFI 60BB 全位置。", "RFI 40BB 全位置。", "RFI 25BB / 20BB / 15BB 全位置。"],
+      examples: [
+        "40BB UTG AJo。AJo 不是自動棄，但在 tough table 或後方 3bet 高時要降頻。原因是前位 range 被檢驗時，AJo 會被 AQ+、AK、JJ+ 壓制。",
+        "25BB CO KTo，BTN 18BB aggressive，BB 24BB aggressive。KTo 可能在 baseline 邊界，但兩個 rejam stack 會讓它變差。這手不是問 KTo 強不強，而是問 open 後被 jam 是否能承受。",
+        "20BB SB Q9s 對 tight BB。這手因為只剩一個對手且 BB 過緊，可以提高 open 或 shove 頻率。若 BB loose call，Q9s 的價值下降，因為你 OOP 實現 equity 差。"
+      ],
+      checkpoints: ["你能不能用一句話說出每個位置 RFI 的目的。", "你能不能在 open 前先標記 RC、RF、M。", "你能不能根據盲位 tight / aggressive 調整後位 M hand。"],
+      drills: ["打開 25BB CO、BTN、SB RFI，各找 5 手 RF。", "列出 UTG 不應該用後位邏輯開的 5 手牌。", "用同一手 KTo 比較 HJ、CO、BTN、SB 的差異。"]
     })],
-    ["02-RFI範圍/05-25BB壓力RFI.md", focusedLesson({
-      title: "25BB 壓力 RFI：每次 open 都要知道 call-off",
-      scene: "Effective stack 25BB。你仍會有 raise-fold，但已經不能把 open 視為便宜嘗試。線上 BBA 底池大，盲位 rejam 很常見。",
-      concepts: ["25BB 的核心是把 open range 分成 raise-call、raise-fold、mixed。", "後位 open 很有價值，但 RF 太多會被 aggressive 盲位懲罰。", "ICM 越重，RC 需要越緊。", "邊界 Ax/Kx 不是自動開，要看盲位是否敢推。"],
-      process: ["打開 25BB RFI 表，先找 RC 與 RF。", "看盲位 15-25BB stack 數量。", "若盲位 rejam 高，砍掉最底部 RF。", "若盲位太緊，加入 M hand 偷盲。"],
-      rangeRefs: ["25BB 9-max RFI 全位置。", "25BB Rejam vs CO/BTN/SB。"],
-      edges: ["A7s/A8s：常是 open，但面對 tight rejam 不想 call。", "KTo/KJo：後位可偷，對 aggressive 盲位要收。", "22-44：後位可開，面對 shove 多半 fold 或 mixed。", "QTo/JTo：依盲位而定，不是標準前位 open。"],
-      mistakes: ["25BB BTN 覺得位置好就開所有 Kx。", "CO open 太多 RF，讓 BB 無痛 rejam。", "Bubble 中碼仍用 chip EV call-off。"],
-      drills: ["25BB CO A8s，BTN/BB 都 18BB aggressive，是否 open？", "25BB BTN 44，SB 12BB、BB 24BB，計畫是什麼？", "25BB SB K9o 對 tight BB 是否可偷？"]
+    ["00-主線課程/03-BB防守完整主線.md", coreLesson({
+      title: "BB 防守完整主線：價格好，不代表什麼都要守",
+      purpose: "BB 已投入盲注，又在 BBA 結構下有更好價格，但你出位置外，realization 差。本章把 pot odds、realization、call、3bet、rejam 放回同一個框架。",
+      body: `
+BB 防守第一個陷阱是「我已經放了大盲，所以我要保護」。這是錯的。你已投入的盲注已經是沉沒成本，真正要比較的是 call、fold、3bet、rejam 哪個 EV 更好。BBA 讓底池更大，確實提高防守誘因，但 OOP realization 仍然很差。
+
+面對 HJ open，BB 要最謹慎。HJ range 仍相對強，弱 Kx、弱 Qx、offsuit ace 很容易 dominated。40BB 可以 call 一些 suited playable hand，20-25BB 時則更常把中小對、suited Ax、部分 broadway 放進 rejam 候選。
+
+面對 CO open，BB 可以比對 HJ 寬，因為 CO range 更寬。這時 A5s、A4s、KTs、QJs、中小對的反擊價值上升。40BB 可保留 call range，25BB 以下更需要用 rejam 把 fold equity 拿回來。
+
+面對 BTN open，BB 的防守最寬，但也最容易過度。BTN range 寬，不代表 BB 可以用所有 suited 和 offsuit trash call。T8o、J8o、Q8o 這類手牌有價格，但 realization 差，短碼時更可能變成 fold 或 rejam，而不是自動 call。
+
+BB 防守第二個陷阱是用 cash game BB defend 套 MTT。MTT 有 ICM、短碼、pay jump、BBA、非線性籌碼價值。你不能只因為 pot odds 看起來夠就 call，尤其 20BB 以下，一次錯的 call 會讓你失去下一手 rejam 的 fold equity。
+      `,
+      rangeRefs: ["40BB / 25BB / 20BB BB defend vs HJ。", "40BB / 25BB / 20BB BB defend vs CO。", "40BB / 25BB / 20BB BB defend vs BTN。"],
+      examples: [
+        "40BB BB K8o vs HJ open。這手通常 fold。K8o 對 HJ range dominated 嚴重，而且 OOP realization 差，即使價格看起來不錯也不值得。",
+        "25BB BB A5s vs BTN open。A5s 有 blocker，也有 nut flush / wheel potential，可以 call、3bet 或 rejam，取決於 BTN open/fold 與 ICM。對過度 steal 的 BTN，rejam 價值高。",
+        "20BB BB 55 vs CO open。call 會讓你進低 SPR OOP spot，rejam 常更乾淨，因為你用 fold equity 把 CO 的 RF range 打掉。"
+      ],
+      checkpoints: ["你能不能分辨 vs HJ、vs CO、vs BTN 防守寬度。", "你能不能說出為什麼 20BB call 小對常比 rejam 差。", "你能不能找出哪些 BB defend hand 是因價格好但 realization 差。"],
+      drills: ["各找三手 BB vs HJ 應 fold、BB vs BTN 可 defend 的牌。", "用 A5s 比較 40BB call、25BB rejam、20BB ICM spot。", "回顧一手你在 BB 過度防守的牌，寫出當時 opener 位置。"]
     })],
-    ["02-RFI範圍/06-20BB短中碼RFI.md", focusedLesson({
-      title: "20BB 短中碼 RFI：少一點花招，多一點清楚",
-      scene: "Effective stack 20BB。你還可以 min-raise，但很多牌已接近 all-in 決策。錯誤 open/fold 會快速流失 stack。",
-      concepts: ["20BB 時，open size 小，但決策壓力大。", "後位仍可 raise-fold，但底部要比 25BB 更乾淨。", "面對 rejam，RC/RF 的分界要先確認。", "不舒服的 postflop hand 要少開。"],
-      process: ["先看 20BB RFI 表。", "把每手牌歸類為 RC、RF、M 或 fold。", "盲位若會 rejam，先刪除 lowest RF。", "若桌子過度 tight，可保留 steal，但不要加太多 offsuit garbage。"],
-      rangeRefs: ["20BB 9-max RFI 全位置。", "20BB Rejam vs CO/BTN/SB。", "20BB BB defend vs HJ/CO/BTN。"],
-      edges: ["A5s：blocker 好，但 ICM 下會降頻。", "K9s/KTo：後位可用，前位危險。", "QJo/JTo：多是後位邊界。", "33-55：很多位置變成 push/rejam 型手牌。"],
-      mistakes: ["20BB 開太多 suited connector 想看 flop。", "open 後遇到 jam 才翻表。", "用 40BB postflop 思維打 20BB。"],
-      drills: ["20BB HJ A9o 是否 open？", "20BB BTN K8o，BB call 太鬆，是否仍開？", "20BB CO 55，SB 18BB aggressive，開前要想什麼？"]
+    ["00-主線課程/04-Rejam與反偷盲.md", coreLesson({
+      title: "Rejam 與反偷盲：讓 opener 為 RF 付代價",
+      purpose: "Rejam 不是看到 blocker 就推，也不是只等 premium。它是 15-25BB 最重要的反偷盲武器，核心是 fold equity、opener range、背後玩家、ICM 壓力。",
+      body: `
+Rejam 的價值來自兩部分：被 call 時的 equity，和 opener fold 時你直接拿下底池。很多玩家只看自己牌力，忽略 fold equity；也有人只看 blocker，對 tight opener 亂推。正確做法是先判斷 opener 的位置與 range。
+
+對 CO open rejam 要比對 BTN 更謹慎，因為 CO range 比 BTN 強，背後還常有 BTN、SB、BB 未行動。A5s、55、KTs 這類牌可以成為候選，但前提是 CO 有足夠 raise-fold 區，且背後沒有會 overcall 的大碼。
+
+對 BTN open，rejam 可以更寬。BTN steal 頻率高，RF hand 多，Axs、KTs、QJs、小對都有更高價值。但如果 BTN 是短碼或 tight player，或已經 pot committed，你的 fold equity 會下降，M hand 要收。
+
+對 SB open，BB rejam 最寬，因為只剩兩人，SB 會有最多偷盲底部。這時很多 Kx、Qx、suited connector、小對都有反擊價值。但 ICM 仍然會改變結論：如果 SB cover 你且 bubble 壓力重，邊界 rejam 要收。
+
+Rejam 的最大錯誤是忽略背後玩家。你在 BTN 面對 CO open，後面還有 SB/BB；你在 CO 面對 HJ open，後面還有 BTN/SB/BB。背後大碼越多，邊界越要收。背後短碼越多，也要考慮他們 overcall 或 squeeze 的可能。
+      `,
+      rangeRefs: ["25BB Rejam vs CO / BTN / SB。", "20BB Rejam vs CO / BTN / SB。", "15BB Rejam vs CO / BTN / SB。", "25BB / 20BB RFI 中的 RF 與 RC 分層。"],
+      examples: [
+        "25BB BTN A5s vs CO open，SB/BB 都大碼。A5s 有 blocker，但背後大碼會降低邊界 rejam 舒適度。若 CO tight，這手要收；若 CO open/fold 高，才可推。",
+        "20BB SB KTo vs BTN open。BTN range 寬，KTo 有 blocker 與可用 equity，常可 rejam。若 BTN call shove 太鬆，KTo 這類 dominated 風險上升，要降頻。",
+        "15BB BB 33 vs SB open。這是經典 rejam spot。SB range 寬，33 被 call 時有 equity，且 fold equity 可直接拿底池。除非 ICM 極重或 SB 太 tight，通常不該只 call。"
+      ],
+      checkpoints: ["你能不能解釋 rejam 的兩種收益來源。", "你能不能說出 opener 越後位，rejam 為何越寬。", "你能不能在 rejam 前先看背後玩家與 ICM。"],
+      drills: ["用 25BB、20BB、15BB 各寫一手 rejam 候選。", "列出五手有 blocker 但不應對 tight CO rejam 的牌。", "用同一手 A5s 比較 vs CO、vs BTN、vs SB。"]
     })],
-    ["02-RFI範圍/07-15BB開局與直接推.md", focusedLesson({
-      title: "15BB 開局與直接推：短碼要保留 fold equity",
-      scene: "Effective stack 15BB。很多位置直接 all-in 比小 raise 更清楚，特別是多人桌與 BBA 底池。",
-      concepts: ["15BB 以下，fold equity 是主要資產。", "小 raise/fold 會消耗太多 stack，必須非常有理由。", "前位仍要保守，後位與 SB 才能大幅加壓。", "短碼不是等 AA，而是選擇對手最難跟的 spot。"],
-      process: ["先看 15BB RFI 表與 12BB Push/Fold 表。", "前位用強而穩定的 shove range。", "CO/BTN/SB 依盲位 call 太鬆或太緊調整。", "Bubble 時先砍掉最差 offsuit 邊界。"],
-      rangeRefs: ["15BB 9-max RFI 全位置。", "12BB Push/Fold 全位置。"],
-      edges: ["K8o/K9o：後位可推，前位不碰。", "Q9s/J9s/T9s：看位置與 ICM。", "A2s-A5s：blocker 有價值，但被 call 時仍會 dominated。", "22-44：常有 fold equity，不能只怕 coin flip。"],
-      mistakes: ["15BB BTN min-raise/fold 太多。", "SB 對 tight BB 不敢推。", "Bubble 過度等牌，最後掉到 5BB。"],
-      drills: ["15BB BTN K8o，兩盲 average tight，是否 shove？", "15BB LJ A9o 是否推？", "15BB SB Q8o 對 loose BB 如何調整？"]
+    ["00-主線課程/05-短碼PushFold與CallOff.md", coreLesson({
+      title: "短碼 Push/Fold 與 Call-off：最容易混淆的兩張表",
+      purpose: "短碼最常犯的錯不是推太寬，而是把 first-in shove range 拿去 call 別人的 all-in。本章把 12BB、10BB、8BB 的主動推注與被動跟注分開。",
+      body: `
+短碼 first-in shove 的邏輯是 fold equity 加上底池 dead money。BBA MTT 的底池比傳統 ante 結構更值得搶，尤其 BTN、SB、CO。你不是等 AA，而是在仍有 fold equity 時選擇對手難跟的 spot。
+
+12BB 仍有些彈性，但學習時先用 push/fold 建立底線。前位要保守，後位可以推更多 Ax、Kx、小對、suited broadway。10BB 更接近純 push/fold，小 raise/fold 的成本太高。8BB 時 fold equity 正在消失，後位與 SB 要更主動。
+
+Call-off 完全不同。你 first-in shove 可以讓對手 fold，但 call 別人的 all-in 沒有 fold equity。這就是為什麼 push range 一定比 call shove range 寬。很多玩家 10BB CO A7o 可推，卻誤以為 10BB 面對 HJ shove 也可用 A7o call，這是大錯。
+
+短碼也要受 ICM 影響，但不能因為 bubble 就完全停擺。ICM 會讓 call-off 明顯收緊，也會讓某些邊界 shove 降頻，但如果你一路等到 5BB，失去 fold equity，反而更難翻身。短碼策略是找 first-in，而不是等 premium。
+
+短碼調整很簡單：盲位 call 太鬆，收掉最低 offsuit Kx/Qx/Jx；盲位過緊，保留更多 blocker 和 suited hand；下一手要進盲位時，邊界可提高頻率；pay jump 極大時，先收 call-off。
+      `,
+      rangeRefs: ["12BB Push/Fold 全位置。", "10BB Push/Fold 全位置。", "8BB Push/Fold 全位置。", "ICM 章節中的 call-off 調整。"],
+      examples: [
+        "10BB CO A7o，前面 fold 到你。這是 first-in，可依表 shove。若兩盲 call 太鬆，底部 A7o 類牌要稍微收，但不應自動棄到只等 premium。",
+        "8BB SB Q7o，BB tight。這是非常有價值的 first-in spot，Q7o 對 tight BB 常可 shove。若 BB 是 loose caller，Q7o 才降頻。",
+        "12BB BB KJo 面對 HJ shove。不要因為 KJo 在某些位置可 first-in shove 就 call。面對 HJ shove 時 range 強，KJo 很容易被 dominated。"
+      ],
+      checkpoints: ["你能不能分辨 first-in shove 和 call shove。", "你能不能說出 12BB、10BB、8BB 的差異。", "你能不能在 bubble 下仍找到合理 first-in spot。"],
+      drills: ["打開 10BB CO Push/Fold，列出五手可 first-in 但不能 call HJ shove 的牌。", "用 8BB BTN、8BB SB 各找三手邊界 shove。", "回顧一手你短碼等太久的牌，寫出前兩圈錯過的 spot。"]
     })],
-    ["02-RFI範圍/08-前位RFI：UTG與LJ.md", focusedLesson({
-      title: "前位 RFI：UTG 與 LJ",
-      scene: "9-max 線上 MTT，UTG/LJ 先行動。你後面還有很多玩家，range 必須能承受 3bet、cold call 與 squeeze。",
-      concepts: ["前位不是偷盲位置，而是建立強 range。", "Broadway offsuit 最容易被 dominated。", "Suited broadway 比 offsuit broadway 更能實現 equity。", "ICM 或 tough table 時，前位先收掉邊界。"],
-      process: ["先看對應 stack 的 UTG/LJ 表。", "確認後方是否有 short rejam stack。", "若桌子被動，才加入少量 M hand。", "被 3bet 時，不用為了面子防守邊界牌。"],
-      rangeRefs: ["60BB/40BB/25BB/20BB/15BB UTG RFI。", "60BB/40BB/25BB/20BB/15BB LJ RFI。"],
-      edges: ["AJo/KQo：可開但容易被壓力測試。", "KJs/QJs/JTs：suited 可玩性較好。", "66/77：深碼可開，短碼更接近 all-in equity。", "A5s：不是所有前位都可自動開。"],
-      mistakes: ["UTG 開 KJo、QJo 成習慣。", "把 LJ 當 CO。", "前位 open 後被 3bet 還用 weak suited ace 硬跟。"],
-      drills: ["40BB UTG AJo 是否 open？", "25BB LJ KQo 被 BTN 3bet 怎麼規劃？", "20BB UTG A5s 在 bubble 是否保留？"]
+    ["00-主線課程/06-PostflopSPR主線.md", coreLesson({
+      title: "Postflop SPR 主線：MTT 翻後不是 cash game 翻後",
+      purpose: "MTT postflop 的關鍵是 SPR、range advantage、nut advantage 與 ICM。你不需要把翻後拆成很多孤立技巧，而要知道 preflop 決策如何一路影響 flop、turn、river。",
+      body: `
+Postflop 第一個問題是 SPR。30BB BTN open BB call，flop 後的 top pair 和 100BB cash game 的 top pair 不是同一件事。SPR 越低，top pair、overpair、強 draw 越容易進入承諾；SPR 越高，單對牌越不能無腦三街。
+
+第二個問題是牌面優勢。BTN open BB call，A72r、K83r 這類高乾牌通常偏向 BTN range，適合小注高頻。987ss、T86 two-tone、654 這類中低連張濕牌會提升 BB 的兩對、順子、pair+draw，preflop aggressor 不應全 range c-bet。
+
+第三個問題是下注後下一街。很多 MTT 翻後錯誤不是 flop 錯，而是 flop bet size 讓 turn 剩 awkward stack。下注前先想：如果我 bet 1/3 pot，turn SPR 是多少；如果 turn blank，我是否願意 shove；如果被 raise，我是否已經承諾。
+
+第四個問題是 multiway。多人底池時 bluff 頻率下降，top pair weak kicker 降級，nut draw 和 nutted value 重要性上升。你不能用 heads-up BTN vs BB 的 c-bet 頻率套在 CO open、BTN call、BB call 的三人底池。
+
+第五個問題是 river。River value 先問更差牌是否會 call；river bluff 要有 blocker 和對手可棄牌區。對 under-bluff pool，你可以更常 fold bluff-catcher；對 calling station，你要少 bluff，多 thin value。但 ICM 下薄 value 與 bluff-catch 都要收。
+      `,
+      rangeRefs: ["BTN/CO/HJ RFI 表回推 preflop aggressor range。", "BB defend vs HJ/CO/BTN 回推 caller range。", "3bet / Rejam 標籤作低 SPR 承諾參考。"],
+      examples: [
+        "30BB BTN KQ open，BB call，flop K72r。BTN 有 range advantage，KQ 在低 SPR 下常可小注建立價值，turn 很多 runout 會接近承諾。",
+        "40BB BTN A5s open，BB call，flop 987ss，且你沒有同花。這是 BB nut advantage 強的牌面，不該高頻空氣 c-bet。你的 A5s 多數應 check back 或選擇非常低頻策略。",
+        "25BB BB 76s defend vs BTN，flop 852 two-tone。你有 pair+draw 或 combo draw 時，check-raise 可以直接建立 fold equity，但 raise 前要知道 turn 是否 all-in。"
+      ],
+      checkpoints: ["你能不能先算 SPR 再決定是否承諾。", "你能不能分辨 A72r 和 987ss 對 BTN/BB range 的差異。", "你能不能說出 multiway 為什麼少 bluff。"],
+      drills: ["選三手 BTN vs BB SRP，分別標記乾牌、濕牌、中性牌。", "任選一手 25BB flop c-bet，算下注後 turn SPR。", "找一手 river bluff，寫出你的 blocker 是否真的有用。"]
     })],
-    ["02-RFI範圍/09-中後位RFI：HJ與CO.md", focusedLesson({
-      title: "中後位 RFI：HJ 與 CO",
-      scene: "HJ/CO 是線上 MTT 的主要盈利位置。你開始攻擊盲位，但仍要處理 BTN、SB、BB 的反擊。",
-      concepts: ["HJ 是半偷盲位，CO 才更接近主攻位。", "BTN aggressive 時，CO 要降低被 3bet 後難打的牌。", "盲位過緊時，CO 可加更多 M hand。", "CO 面對短碼盲位要提前規劃 rejam。"],
-      process: ["先看 stack 對應 HJ/CO RFI。", "確認 BTN 是否會 3bet。", "確認 SB/BB 是否有 12-25BB rejam stack。", "根據 fold equity 加入或移除邊界牌。"],
-      rangeRefs: ["40BB/25BB/20BB HJ RFI。", "40BB/25BB/20BB CO RFI。", "Rejam vs CO 作為反制參考。"],
-      edges: ["A9o/A8s：CO 常可開，HJ 要更挑。", "KTo/QTo/JTo：CO 才自然，HJ 要看桌況。", "98s/87s：深碼可玩，短碼下降。", "22-55：需要知道被推如何處理。"],
-      mistakes: ["CO 忽略 BTN aggressive 3bet。", "HJ 用 CO range。", "後位 open 前不看盲位 stack。"],
-      drills: ["30BB CO QTo，BTN aggressive，盲位 tight，是否 open？", "25BB HJ A8s，BB 18BB aggressive，如何調整？", "40BB CO 76s，兩盲很緊，是否加入？"]
+    ["00-主線課程/07-ICM與FinalTable.md", coreLesson({
+      title: "ICM 與 Final Table：先改 call-off，再改 open",
+      purpose: "ICM 不是讓你完全不打，而是讓你知道籌碼不是線性價值。本章把 bubble、中碼、大碼、短碼、final table pay jump 放成一套調整流程。",
+      body: `
+ICM 最先影響 call-off。因為 call all-in 會讓你承擔出局風險，而 open 或 first-in shove 通常仍保留 fold equity。這就是為什麼 bubble 中碼 AJo 面對 cover 你的大碼 jam，可能要比 chip EV 緊很多；但同一個中碼在 BTN first-in，仍可對 tight 盲位施壓。
+
+中碼是 ICM 最容易犯錯的 stack。你不是最短，不需要亂賭；你也不是最大，不能隨便跟 cover 你的大碼打光。中碼應避免跟大碼打邊界 all-in，同時對會過度棄牌的中短碼施壓。
+
+大碼可以施壓，但不是 any two 印鈔。大碼真正的優勢是 cover 對手，讓中碼不敢輕易 call-off。若另一個大碼在後面，或盲位是會反制的玩家，你仍要收掉底部。大碼亂開被另一個大碼 3bet，反而會把自己的籌碼優勢送掉。
+
+短碼不能只等 pay jump。短碼在 bubble/FT 要找 first-in fold equity，尤其 BTN、SB、CO。ICM 會讓你的 call-off 更緊，但如果你不主動找 spot，等到 4-5BB 時，對手會被迫用更寬 range call，你的 fold equity 消失。
+
+Final table 要先列 stack 地圖。誰 cover 誰，誰被誰 cover，誰是短碼，下一個 pay jump 差多少。沒有這張地圖，你看任何 range 表都會誤用。FT 的 preflop 表只能當 chip EV baseline，真正決策要按 cover 關係重算風險。
+      `,
+      rangeRefs: ["RFI / Rejam / Push-Fold 表都作 chip EV 起點。", "ICM spot 先調 call-off，再調 RF 與 M 邊界。"],
+      examples: [
+        "Bubble 24BB HJ AJo，CO 大碼 jam。Chip EV 下 AJo 可能接近，但 ICM 下你是中碼且被 cover，call-off 要大幅收緊，常會 fold。",
+        "Bubble 35BB BTN K7s，兩盲都是 18-22BB 中碼且偏緊。這是大碼施壓 spot，K7s 可作 open 候選。但若 BB 是另一個大碼，不能用同樣寬度。",
+        "FT 7 left，8BB CO Q9s，前面 fold 到你。雖然有 pay jump，但你仍需要找 first-in。若後面中碼怕出局，Q9s 可能是合理 shove；若盲位大碼 loose call，則收。"
+      ],
+      checkpoints: ["你能不能說出 ICM 為什麼先影響 call-off。", "你能不能畫出一桌 FT 的 cover 關係。", "你能不能分辨大碼施壓和大碼亂開。"],
+      drills: ["用三個 stack：大碼 60BB、中碼 24BB、短碼 8BB，寫出各自 bubble 任務。", "找一手你 bubble call-off 的牌，重新按 ICM 評估。", "FT 任選 6 人 stack，標出誰能施壓誰。"]
     })],
-    ["02-RFI範圍/10-偷盲位RFI：BTN與SB.md", focusedLesson({
-      title: "偷盲位 RFI：BTN 與 SB",
-      scene: "BTN/SB 是線上 BBA MTT 偷盲最重要的位置。因為 dead money 大，偷盲很賺；但對手知道這點，所以反擊也更頻繁。",
-      concepts: ["BTN 有 position，能承受較多 call。", "SB 沒 position，但只剩 BB 一人，steal incentive 很高。", "BB 太鬆時，SB 要降低弱 offsuit。", "BB 太緊時，BTN/SB 的 M hand 可加入。"],
-      process: ["先看 BTN/SB 的 stack 對應 RFI。", "確認 BB defend、3bet、rejam 傾向。", "BTN 對兩個 tight blinds 加寬，對 aggressive blinds 收底部。", "SB 先問：被 BB jam 時哪些牌要跟？"],
-      rangeRefs: ["25BB BTN/SB RFI。", "20BB BTN/SB RFI。", "15BB BTN/SB RFI。", "BB defend vs BTN。"],
-      edges: ["K7o/Q8o/J8o：只在好偷盲環境加入。", "A2o-A5o：blocker 有價值，但被 call 很難打。", "65s/54s：BTN 比 SB 更容易實現 equity。", "Q9s/J9s/T9s：SB 對 tight BB 價值高。"],
-      mistakes: ["BTN 看到兩張牌就開。", "SB 對 loose BB 還狂開 trash。", "被 BB rejam 後才想 call-off。"],
-      drills: ["25BB BTN K7o，SB/BB 都 tight，是否 open？", "20BB SB Q8o，BB loose call，如何處理？", "15BB BTN A2o，盲位 call 太鬆，是否仍推？"]
+    ["00-主線課程/08-PKO主線.md", coreLesson({
+      title: "PKO 主線：Bounty 只改邊界，不會把爛牌變好牌",
+      purpose: "PKO 的學習常被賞金誘惑打亂。本章建立最重要的判斷順序：先看是否 cover，再估 bounty，再看牌力與背後玩家。",
+      body: `
+PKO 第一個問題永遠是：你有沒有 cover 對手。只有你 cover 對手，才有 bounty equity。如果你不 cover 對手，賞金不會進你的口袋，就不能拿 bounty 當理由去 call。這一點比任何複雜公式都重要。
+
+第二個問題是 bounty 相對籌碼價值。早期 PKO bounty 可能佔總價值比例高，後期籌碼與 pay jump 影響更大。你不能看到 bounty 就用任何 Ax/Kx call。Bounty 只會讓接近臨界的 call 變成可跟，不會把 dominated trash 變成好牌。
+
+第三個問題是 isolation。你 cover 短碼時，rejam 或 isolate 可以讓其他人 fold，自己單挑短碼拿 bounty。這在大碼或中大碼時很重要。但若背後有更大碼會 overcall，你的 isolation EV 會下降，邊界 hand 要收。
+
+第四個問題是 dominated hand。A8o、KTo、QJo 這些牌在 bounty 誘惑下很常被高估。它們可能因 bounty 進入 call 範圍，但一旦對手 jam range 偏強，被 dominated 的代價很大。PKO 放寬的是邊界，不是放棄牌力結構。
+
+PKO 和 ICM 會同時存在。你 cover 短碼時可以放寬；你被大碼 cover 時仍要保護出局風險；FT PKO 還有 pay jump。最終流程是：cover 關係，bounty 價值，chip EV range，ICM 壓力，背後玩家。
+      `,
+      rangeRefs: ["Rejam 表中的 M hand 是 PKO 最常調整區。", "Push/Fold 表作短碼 first-in 起點，不可直接當 PKO call 表。", "BB defend vs BTN/SB 可用來評估 cover 短碼 jam。"],
+      examples: [
+        "PKO 你 32BB，BTN 8BB jam，你 BB A8o 且 cover。A8o 在普通 MTT 可能邊界，但 bounty 可讓它更常 call。仍要看 BTN 是否太 tight，以及 SB 是否已入池。",
+        "PKO 你 12BB，不 cover CO 20BB，CO jam，你 KJo。沒有 cover 就沒有 bounty equity，不能用賞金理由 call。這手回到普通 MTT call-off，而且通常很緊。",
+        "PKO 你 55BB 大碼，BTN 7BB open，SB 22BB，BB 18BB。你在 CO/BTN 後位若能 isolate 短碼，要看背後中碼是否會 overcall。若背後過緊，M hand 可加壓。"
+      ],
+      checkpoints: ["你能不能在 PKO 第一秒先問是否 cover。", "你能不能說出 bounty 只改邊界的意思。", "你能不能分辨 isolate bounty 和亂追 bounty。"],
+      drills: ["列出三手 cover 短碼可放寬 call 的牌。", "列出三手不 cover 時不該因 bounty call 的牌。", "用一手 PKO 牌寫出 cover、bounty、ICM、背後玩家四個欄位。"]
     })],
-    ["03-BB防守/02-BB對HJOpen.md", focusedLesson({
-      title: "BB 防守 vs HJ Open",
-      scene: "你在 BB，面對 HJ open。HJ range 仍相對強，BB 不能只因價格好就 defend 太寬。",
-      concepts: ["面對 HJ，BB 防守要比對 BTN 緊。", "Offsuit 弱 Kx/Qx 很容易被 dominated。", "40BB 可保留較多 call，20-25BB 更偏向 rejam 或 fold。", "A blocker 有價值，但 A2o 不是自動防守。"],
-      process: ["先看 BB vs HJ 表。", "40BB 時把可玩 suited hand 作 call，強牌與 blocker 進 3bet。", "25BB 以下先找 rejam 候選。", "ICM 下把邊界 call-off 收掉。"],
-      rangeRefs: ["40BB BB defend vs HJ。", "25BB BB defend vs HJ。", "20BB BB defend vs HJ。"],
-      edges: ["K8o/K9o：多數不舒服。", "Q9s/J9s：可玩但非自動。", "55-77：短碼常變 rejam 候選。", "A9o/AJo：看 stack 與 opener。"],
-      mistakes: ["把 BB vs BTN 防守套到 HJ。", "用 A2o defend 後在 A-high flop 賠大。", "20BB call 小對只為看 set。"],
-      drills: ["40BB BB K9o vs HJ open 是否 defend？", "25BB BB 66 vs HJ open 如何處理？", "20BB BB A9o vs HJ open 在 bubble 怎麼調整？"]
+    ["00-主線課程/09-線上多桌Default與Exploit.md", coreLesson({
+      title: "線上多桌 Default 與 Exploit：少調整，但調對地方",
+      purpose: "線上多桌資訊不完整，時間也少。你需要先有 default，再把 exploit 限制在邊界牌，避免因一兩手牌把整套策略改壞。",
+      body: `
+多桌時最重要的是流程穩定。每手先判斷 action 類型與 effective stack，再開對應 range。Unknown player 先用 baseline，不要因為感覺調整。你真正能調的是 M、RF、邊界 call-off，不是整套 range。
+
+盲位過緊是最直接的 exploit。BTN、CO、SB 的 M hand 可以加頻，尤其 Kxs、Qxs、部分 offsuit broadway、低 suited connector。但如果盲位只是樣本少，不要把一次 fold 當成長期 tight。
+
+盲位 rejam 過高時，你要收 RF 底部。很多人知道 aggressive blind 會推，卻還是照 baseline 開 K7o、Q8o、弱 ATo，結果變成反覆 raise/fold。正確做法是把最難 call-off 的底部拿掉，保留能 raise-call 或 blocker 更好的牌。
+
+對 under-bluff player，river bluff-catch 要降低。線上低中級別玩家很多 river 大注不足 bluff，尤其 ICM 下更少 bluff。你不需要每次證明對手有 bluff，當 pool 明顯 under-bluff，fold 第二對、弱 top pair 是盈利調整。
+
+對 calling station，少 bluff，多 thin value。這種玩家會讓你的 c-bet bluff、river bluff EV 下降，但會讓 top pair good kicker、overpair、兩對、set 的 thin value 增加。調整方向要跟對手錯誤一致，不要只用「他很爛」當理由亂打。
+      `,
+      rangeRefs: ["所有 RFI 表中的 M / RF 是 exploit 調整入口。", "BB defend 表用來處理 opener 過寬或過緊。", "Postflop SPR 章作下注與承諾基準。"],
+      examples: [
+        "25BB BTN K7o，SB/BB 都 fold to steal 高。K7o 可能從 fold 或低頻 M 變成可 open，但如果 BB 有 20BB 且 rejam 高，這手反而要收。",
+        "30BB CO QTo，BTN 3bet 高、BB rejam 高。這不是舒服 steal，QTo 容易被兩種壓力懲罰。你的調整是收底部，而不是因為 CO 就照開。",
+        "River 你拿 second pair 面對 tight player pot bet。若對手 pool under-bluff，這種 bluff-catch 不需要逞強。你把錢省下來，就是 exploit。"
+      ],
+      checkpoints: ["你能不能分辨哪些牌是可調整邊界。", "你能不能避免用單一 showdown 重寫策略。", "你能不能把對手錯誤對應到正確 exploit。"],
+      drills: ["列出三種盲位類型：tight、loose call、aggressive rejam，分別怎麼調 BTN RFI。", "找三手 river bluff-catch，標出對手是否 under-bluff。", "用一手 CO open 寫出 BTN/盲位不同玩家類型下的調整。"]
     })],
-    ["03-BB防守/03-BB對COOpen.md", focusedLesson({
-      title: "BB 防守 vs CO Open",
-      scene: "你在 BB，面對 CO open。CO range 比 HJ 寬，但仍不是任兩張。你要在 call、3bet、rejam 中選清楚。",
-      concepts: ["CO open 較寬，BB 可以防守更多 suited broadway、suited connector 與部分 offsuit broadway。", "40BB 可 call 較多可玩牌，25BB 以下 rejam 權重增加。", "對 tight CO 不要過度 rejam 邊界。", "對偷太多的 CO，要用 blocker 與中小對反擊。"],
-      process: ["先看 BB vs CO 表。", "判斷 CO open 是否過寬。", "40BB 用 call + 3bet 分層，20/25BB 用 rejam 反擊。", "若背後已無玩家，BB 可比其他位置更直接對抗。"],
-      rangeRefs: ["40BB BB defend vs CO。", "25BB BB defend vs CO。", "20BB BB defend vs CO。", "20BB Rejam vs CO。"],
-      edges: ["A5s/A4s：優秀 blocker rejam。", "KTo/QTo/JTo：常是對 CO 的邊界 defend。", "76s/65s：40BB 可 call，20BB 價值下降。", "44/55：短碼反擊候選。"],
-      mistakes: ["對 tight CO 用 BTN 防守邏輯。", "40BB 把所有 suited gapper 都 call。", "25BB 只 call 不 rejam，讓 CO 免費偷盲。"],
-      drills: ["25BB BB A5s vs CO open 是否 rejam？", "40BB BB 76s vs CO open 是否 call？", "20BB BB KTo vs CO open 怎麼處理？"]
+    ["00-主線課程/10-Range表使用方法.md", coreLesson({
+      title: "Range 表使用方法：先看標籤，再看手牌",
+      purpose: "Range 表不是要你背 169 格，而是要你用標籤建立決策分層。本章教你如何把 69 張表變成可用工具，而不是新的碎片負擔。",
+      body: `
+讀 range 表時不要先盯著某一手牌。先看 spot、stack、position。你在 25BB BTN first-in，就看 25BB BTN RFI；你在 20BB BB 面對 CO open，就看 20BB BB defend vs CO；你 15BB 面對 BTN open，要看 15BB rejam vs BTN，而不是 15BB RFI。
+
+第二步看標籤。R+ 和 R 是主要進攻區，M 是桌況調整區，F 是棄牌，C 是 call/defend，3B 是非 all-in 3bet，RC 是 raise-call all-in，RF 是 raise-fold，RJ 是 rejam，AI 是 first-in shove。標籤比顏色重要，因為顏色只幫你掃描，真正的策略在文字。
+
+第三步看邊界。每張表都有 boundary。邊界手牌才是你真正要練的部分，因為 AA、KK、AKs 幾乎不會讓你困惑。MTT 贏率通常差在 A8o、KTo、Q9s、55、A5s、T9s 這些你容易過度或不足的牌。
+
+第四步做調整。M hand 的調整來源只有幾種：盲位太緊、盲位太鬆、盲位 rejam 太高、opener 太 tight、ICM 壓力、PKO cover、背後大碼。不要因為心情、連輸、想報仇調整 range。
+
+第五步做回放。每次 review 時，不要問「我這手到底該不該打」，先問「我當時用的是哪張表，標籤是什麼，我調整的理由是什麼」。如果你說不出表與標籤，代表你當時不是在決策，而是在猜。
+      `,
+      rangeRefs: ["RFI 全表。", "BB defend 全表。", "Rejam 全表。", "Push/Fold 全表。"],
+      examples: [
+        "25BB BTN 44 在 RFI 表可能是 RF 或邊界。這代表你可以 open，但面對某些 rejam 不應自動 call。若盲位都是 12-18BB aggressive，44 的 open EV 會下降。",
+        "20BB BB KTo vs BTN open。這不是用 RFI 表，而是 BB defend 或 rejam 表。KTo 對寬 BTN 可反擊，但對 tight BTN 或 ICM 壓力要收。",
+        "10BB SB J7o。這是 Push/Fold AI 表，不是 SB RFI 表。若 BB tight，J7o 可推；若 BB loose call，這手在底部要收。"
+      ],
+      checkpoints: ["你能不能為任一手牌找到正確表。", "你能不能解釋每個 label 的行動含義。", "你能不能只調整 M/RF/邊界，而不是亂改核心 range。"],
+      drills: ["隨機選 20 手牌，只做找表與讀 label。", "把 A5s 在 RFI、BB defend、Rejam、Push/Fold 中各找一張表比較。", "列出你最容易誤用的三張表。"]
     })],
-    ["03-BB防守/04-BB對BTNOpen.md", focusedLesson({
-      title: "BB 防守 vs BTN Open",
-      scene: "你在 BB，面對 BTN open。這是最常見、也最容易過度防守的 spot。BTN range 寬，但 BB 出位置外，不能只看 pot odds。",
-      concepts: ["BTN range 寬，BB 防守自然最寬。", "OOP realization 差，弱 offsuit hand 仍會虧。", "40BB call range 最寬，25/20BB rejam 明顯增加。", "對 open 太多又 fold 太多的 BTN，blocker rejam 很有價值。"],
-      process: ["先看 BB vs BTN 表。", "40BB 分出 call 與 3bet，不要把邊界都 call。", "25/20BB 找 RJ 與 M hand。", "若 BTN call shove 太鬆，降低弱 Ax/Kx rejam。"],
-      rangeRefs: ["40BB BB defend vs BTN。", "25BB BB defend vs BTN。", "20BB BB defend vs BTN。", "20BB Rejam vs BTN。"],
-      edges: ["T8o/J8o/Q8o：價格好但 realization 差。", "A2s-A5s：blocker 與 nut potential 兼具。", "K9o/KTo：對寬 BTN 可反擊，對 tight BTN 收。", "22-44：短碼 rejam 價值高於 call。"],
-      mistakes: ["BB vs BTN 看到任何 suited 就 call。", "20BB 用 call 保護盲注，錯過 fold equity。", "BTN open size 變大仍用同一張表。"],
-      drills: ["40BB BB T8o vs BTN min-open 是否 defend？", "25BB BB A4s vs BTN open 是否 rejam？", "20BB BB 33 vs BTN open 如何處理？"]
-    })],
-    ["04-Rejam/02-25BBRejam.md", focusedLesson({
-      title: "25BB Rejam：用 fold equity 懲罰偷盲",
-      scene: "你 25BB，前方 CO/BTN/SB open。25BB rejam 的價值來自 fold equity、blocker 與 opener range 的寬度。",
-      concepts: ["25BB rejam 仍能讓 opener fold 很多 RF hand。", "Opener 越後位，你越能加壓。", "背後玩家越多，你越要收緊。", "ICM 下，中碼對 cover 自己的人 rejam 要更謹慎。"],
-      process: ["先看 25BB Rejam vs 對應 opener。", "確認 opener 是否真的寬。", "確認背後 stack 與大碼壓力。", "把 M hand 只留給 fold equity 足夠的桌況。"],
-      rangeRefs: ["25BB Rejam vs CO。", "25BB Rejam vs BTN。", "25BB Rejam vs SB。"],
-      edges: ["A5s/A4s：標準 blocker 邊界。", "KTs/KJo：對後位可用，對前位危險。", "44/55：對寬 opener 可推，對 tight opener 收。", "QJo/JTo：需要 opener 過寬才舒服。"],
-      mistakes: ["看到 A blocker 就對 tight CO rejam。", "忽略 BTN/SB/BB 背後大碼。", "Bubble 中碼跟大碼硬碰。"],
-      drills: ["25BB BTN A5s vs CO open，BB 大碼，是否 rejam？", "25BB SB KJo vs BTN open，BTN fold to shove 高，如何處理？", "25BB BB 44 vs SB open 是否推？"]
-    })],
-    ["04-Rejam/03-20BBRejam.md", focusedLesson({
-      title: "20BB Rejam：少 call，多讓對手做決定",
-      scene: "你 20BB，前方 open。這個深度 call 會讓 postflop SPR 很低，很多手牌用 rejam 比 call 更清楚。",
-      concepts: ["20BB 的 call 很容易變成被動實現 equity。", "Rejam 讓 opener 的 RF range 直接棄牌。", "中小對與 suited Ax 的價值上升。", "ICM 會砍掉 dominated 邊界。"],
-      process: ["先看 20BB Rejam 表。", "判斷 opener 是否有足夠 fold range。", "若 opener tight 或 pot committed，收掉 M hand。", "若背後有大碼，收掉最弱 blocker。"],
-      rangeRefs: ["20BB Rejam vs CO。", "20BB Rejam vs BTN。", "20BB Rejam vs SB。"],
-      edges: ["A2s-A5s：常見 blocker rejam。", "K9s/KTo：對後位可推，對 tight range 下降。", "22-44：很多情境比 call 好。", "QTo/JTo：只對過寬 opener。"],
-      mistakes: ["20BB call 55 等翻牌。", "rejam 前不看 opener 是否會 fold。", "用 dominated offsuit ace 對早位硬推。"],
-      drills: ["20BB BTN A4s vs CO open 是否 rejam？", "20BB SB KTo vs BTN open，BTN call 太鬆，怎麼調？", "20BB BB 22 vs SB open 是否推？"]
-    })],
-    ["04-Rejam/04-15BBRejam.md", focusedLesson({
-      title: "15BB Rejam：短碼的主動權",
-      scene: "你 15BB，前面玩家 open。很多玩家短碼只等牌，但 15BB 還有足夠 fold equity，可以靠 rejam 重建 stack。",
-      concepts: ["15BB rejam 是短碼最重要武器之一。", "對後位偷盲者，range 可以明顯更寬。", "對前位 tight range，仍要尊重。", "被 call 時 equity 不能太差，不能只看 fold equity。"],
-      process: ["先看 15BB Rejam 表。", "辨識 opener 位置與頻率。", "若 opener 後方還有人未行動，砍掉邊界。", "若你在 BB 對 SB，可用最寬反擊。"],
-      rangeRefs: ["15BB Rejam vs CO。", "15BB Rejam vs BTN。", "15BB Rejam vs SB。"],
-      edges: ["K7s/K8s：對 SB/BTN 可用，對 CO 收。", "A2o-A5o：看 opener 與 ICM。", "Q8s/J8s/T8s：後位攻防才出現。", "22/33：常可推，但 bubble 中要小心。"],
-      mistakes: ["15BB 只 call BTN open。", "對 UTG open 用 vs BTN 表。", "短碼怕出局而完全不反擊。"],
-      drills: ["15BB BB K8o vs SB open 是否 rejam？", "15BB BTN Q9s vs CO open，CO tight，是否推？", "15BB SB A2s vs BTN open 在 bubble 怎麼調？"]
-    })],
-    ["05-PushFold/02-12BBPushFold.md", focusedLesson({
-      title: "12BB Push/Fold：還有選擇，但別拖太久",
-      scene: "你 12BB，前面 fold 到你。這是短碼但仍有 fold equity 的深度，尤其 BBA 底池讓 first-in shove 很有價值。",
-      concepts: ["12BB 可以保留少量 min-raise，但預設先學 push/fold。", "前位推得比後位緊。", "Shove range 比 call shove range 寬很多。", "ICM 下，底部 offsuit broadway 與弱 Ax 先收。"],
-      process: ["先看 12BB Push/Fold 表。", "確認位置與盲位 call 傾向。", "盲位太鬆，砍掉 dominated offsuit 底部。", "盲位太緊，保留更多 suited 與 blocker hand。"],
-      rangeRefs: ["12BB Push/Fold UTG/HJ/CO/BTN/SB。"],
-      edges: ["A7o/A8o：後位常推，前位看表。", "KTo/KJo：CO/BTN 常見，UTG 謹慎。", "44/55：很多位置可推。", "98s/T9s：後位與 CO 才常出現。"],
-      mistakes: ["12BB 等到 7BB 才開始找 spot。", "用 12BB push 表去 call UTG shove。", "SB 對 tight BB 還棄太多。"],
-      drills: ["12BB UTG 44 是否 shove？", "12BB BTN K9o 是否 shove？", "12BB CO 98s 對 loose 盲位如何調整？"]
-    })],
-    ["05-PushFold/03-10BBPushFold.md", focusedLesson({
-      title: "10BB Push/Fold：不要再幻想複雜 postflop",
-      scene: "你 10BB，前面 fold 到你。這時候直接 all-in 是主要策略，因為小 raise 後幾乎沒有健康的 fold 空間。",
-      concepts: ["10BB first-in shove 仍有 fold equity。", "位置越後，range 擴張越明顯。", "SB 對 BB 是最寬的 first-in spot。", "對 call 太鬆的盲位，要砍掉最差 offsuit。"],
-      process: ["先看 10BB Push/Fold 表。", "確認是否有人 cover 且 ICM 壓力重。", "若盲位 tight，照表或略加底部。", "若盲位 loose，移除 lowest Kx/Qx/Jx。"],
-      rangeRefs: ["10BB Push/Fold UTG/HJ/CO/BTN/SB。"],
-      edges: ["Q9o/J9o/T9o：多是後位或 SB。", "K6o-K9o：SB/BTN 才自然。", "A2o-A5o：後位 blocker 推很重要。", "22/33：不要過度害怕 coin flip。"],
-      mistakes: ["10BB BTN min-raise/fold。", "覺得 KTo 太醜不敢 CO 推。", "Bubble 完全不推，讓 stack 掉到無 fold equity。"],
-      drills: ["10BB HJ KJo 是否 shove？", "10BB SB J7o，BB tight，是否 shove？", "10BB CO A7o 在 bubble 是否需要收？"]
-    })],
-    ["05-PushFold/04-8BBPushFold.md", focusedLesson({
-      title: "8BB Push/Fold：fold equity 正在消失",
-      scene: "你 8BB，前面 fold 到你。這時候等待會非常昂貴，因為下一輪盲注與 BBA 會吃掉大量 stack。",
-      concepts: ["8BB 必須主動找 first-in spot。", "很多看起來普通的後位手牌都必須推。", "前位仍需保守，但不能只等 premium。", "Call shove 仍要比 open shove 緊。"],
-      process: ["先看 8BB Push/Fold 表。", "位置越後越尊重 dead money。", "若下一手要進盲位，邊界可提高頻率。", "ICM 下只砍最差底部，不要整套停擺。"],
-      rangeRefs: ["8BB Push/Fold UTG/HJ/CO/BTN/SB。"],
-      edges: ["Q7o/J7o/T8o：多在 SB/BTN 出現。", "K4o-K8o：後位與 SB 的壓力手。", "Any Ax：多數後位都有 blocker 價值。", "低 suited connector：只在後位或 SB。"],
-      mistakes: ["8BB 還想 limp/call。", "BTN Q9o 棄掉太多。", "把對手 loose call 當作完全不能推。"],
-      drills: ["8BB BTN T8o 是否 shove？", "8BB SB Q7o 對 loose BB 如何調整？", "8BB UTG A9o 是否 shove？"]
-    })],
-    ["08-PostflopSPR/02-SRP位置優勢.md", focusedLesson({
-      title: "SRP 位置優勢：BTN Open BB Call",
-      scene: "BTN open，BB call，single-raised pot。這是線上 MTT 出現最多的 postflop spot。BTN 有位置與 range advantage，但 BB 有很多防守牌命中中低牌面。",
-      concepts: ["A/K/Q high 乾牌常偏向 BTN range。", "中低連張濕牌會提升 BB 的兩對、順子、pair+draw。", "短碼 SPR 低時，c-bet size 要考慮 turn all-in。", "不是每個 flop 都要 c-bet。"],
-      process: ["先回想 BTN RFI 與 BB defend range。", "判斷 flop 誰有 nut advantage。", "選擇小注高頻或大注低頻。", "下注前先看 turn pot 與剩餘 stack。"],
-      rangeRefs: ["BTN RFI 表。", "BB defend vs BTN 表。"],
-      edges: ["A72r：BTN range advantage 明顯。", "987ss：BB 命中更多兩對與順子。", "KQ4r：BTN 可高頻小注。", "T86 two-tone：需要降低自動 c-bet。"],
-      mistakes: ["BTN 每個 flop 都 1/3 pot。", "濕牌面用空氣連開三街。", "短碼 flop bet 後 turn SPR 失控。"],
-      drills: ["30BB BTN KQ open，BB call，flop K72r，如何規劃三街？", "40BB BTN A5s open，BB call，flop 987ss，是否高頻 c-bet？", "20BB BTN QJo open，BB call，flop Q84r，下注後 turn 如何承諾？"]
-    })],
-    ["08-PostflopSPR/03-OOP防守與CheckRaise.md", focusedLesson({
-      title: "OOP 防守與 Check-Raise",
-      scene: "你在 BB defend 後出位置外。你不能只用 check-call 被動實現 equity，要知道哪些牌能 check-raise 施壓。",
-      concepts: ["OOP realization 差，所以強 draw 需要主動性。", "Check-raise 需要 fold equity 與 turn barrel plan。", "短碼 check-raise 幾乎會接近 commitment。", "弱 pair 無 kicker 不要自動保護。"],
-      process: ["先確認 preflop BB defend range。", "在有 nut draw、combo draw、強 top pair 時建立 check-raise。", "看 stack 決定 check-raise size 是否等於承諾。", "若對手不 fold，降低 bluff check-raise。"],
-      rangeRefs: ["BB defend vs CO/BTN 表。", "20BB/25BB RFI 表用來推回 opener range。"],
-      edges: ["A5s 在 wheel draw 面可有強 semi-bluff。", "低 suited connector 命中強 draw 才能主動。", "Middle pair 無 redraw 多數不該膨脹底池。", "Top pair weak kicker 在 ICM 下要控風險。"],
-      mistakes: ["BB 只 check-call 到 river。", "沒有 turn plan 就 check-raise。", "短碼用 check-raise/fold 浪費 stack。"],
-      drills: ["25BB BB 76s defend vs BTN，flop 852 two-tone，有無 check-raise？", "40BB BB A5s vs CO，flop 743r，如何規劃？", "20BB BB K8o vs BTN，flop KJ4ss，是否願意承諾？"]
-    })],
-    ["08-PostflopSPR/04-3BetPot低SPR.md", focusedLesson({
-      title: "3bet Pot 低 SPR：少犯昂貴錯誤",
-      scene: "你 preflop 3bet 或 call 3bet，flop 後 SPR 通常明顯低於 single-raised pot。MTT 中這類錯誤代價很高。",
-      concepts: ["3bet pot range 更集中，top pair/overpair 價值上升。", "低 SPR 不代表任何 pair 都打光。", "位置與 nut advantage 仍然重要。", "ICM 下，被 cover 時要避免薄價值打光。"],
-      process: ["先確認 3bet range 是否偏 value 或 polar。", "估算 flop pot 與剩餘 stack。", "強牌選 size 時要讓 turn shove 自然。", "邊界 bluff-catcher 不要在 ICM 下過度防守。"],
-      rangeRefs: ["RFI 表中的 R+/RC 作 value 參考。", "BB defend 表中的 3B/RJ 作反擊參考。"],
-      edges: ["AQ/AK：命中 top pair 常接近承諾，但仍看 board。", "JJ/QQ：A/K high board 要控制。", "A5s：作 bluff 3bet 後要知道哪些 flop 繼續。", "Suited connector call 3bet 在短碼很危險。"],
-      mistakes: ["40BB 3bet pot 用 100BB cash game 慢打邏輯。", "拿 overpair 在極濕牌面無腦三街。", "ICM 壓力下用第二對跟到底。"],
-      drills: ["35BB CO open，你 BTN 3bet AK，flop A76r，如何 size？", "40BB QQ 3bet pot，flop KJ9ss，是否自動打光？", "30BB A5s 3bet bluff 被 call，flop 862r 是否繼續？"]
-    })],
-    ["08-PostflopSPR/05-Turn承諾點.md", focusedLesson({
-      title: "Turn 承諾點：下注前先看剩餘 stack",
-      scene: "MTT 中很多錯誤不是 flop 錯，而是 flop 下注後 turn SPR 變得尷尬。你要在 flop 前就知道 turn 是否承諾。",
-      concepts: ["Flop c-bet size 會決定 turn 是否自然 shove。", "短碼 top pair 常在 turn 進入 commitment。", "高 SPR 下，單對牌要避免自動三街。", "Draw 下注要知道 river bluff candidate。"],
-      process: ["Flop 前先估 pot、剩餘 stack、下注後 turn SPR。", "若 turn SPR 接近 1，flop bet 就代表準備承諾。", "若不想承諾，flop 要選 check 或小 size。", "River 前保留清楚的 value/bluff 分界。"],
-      rangeRefs: ["對應 preflop RFI 與 BB defend 表。"],
-      edges: ["TPTK：低 SPR 價值高，高 SPR 仍需看 kicker。", "Second pair：多用 bluff-catch，不要膨脹。", "Nut flush draw：可用來建立承諾線。", "弱 draw：短碼不要用昂貴 semi-bluff。"],
-      mistakes: ["Flop 下注只是因為有牌，沒有 turn 計畫。", "下注 size 讓 turn 剩 awkward stack。", "River bluff 選到 blocker 很差的牌。"],
-      drills: ["25BB BTN open BB call，flop A84r 下注後 turn SPR 多少？", "30BB CO open BB call，flop T97ss 你 AT，是否想承諾？", "40BB 3bet pot 你 AK 在 KJ8ss，turn blank 如何規劃？"]
-    })],
-    ["08-PostflopSPR/06-CbetSize選擇.md", focusedLesson({
-      title: "C-bet Size 選擇：小注不是萬用",
-      scene: "你是 preflop aggressor，flop 後要選 check、小注或大注。線上 MTT 常見錯誤是任何牌面都用 1/3 pot，導致濕牌面被過度 check-raise 或 turn 難打。",
-      concepts: ["乾燥高牌面通常可用小注高頻。", "濕潤連張面需要降低頻率或提高 value / draw 的下注權重。", "低 SPR 時，flop size 會直接決定 turn 是否 all-in。", "多桌環境要用簡化策略，但不能忽略牌面分類。"],
-      process: ["先判斷 range advantage 與 nut advantage。", "乾牌面用小注測試全 range 壓力。", "濕牌面把空氣牌 check back，保留 equity。", "下注前計算 turn SPR，避免 awkward stack。"],
-      rangeRefs: ["BTN RFI vs BB defend。", "CO/HJ RFI vs BB defend。"],
-      edges: ["A72r：小注高頻。", "K83r：小注高頻但保留部分 check。", "T98ss：降低空氣 c-bet。", "654 two-tone：BB nut advantage 上升。"],
-      mistakes: ["任何 flop 都 1/3 pot。", "濕牌面用沒有 backdoor 的空氣下注。", "下注後 turn 不知道是否該 shove。"],
-      drills: ["30BB BTN open BB call，flop A72r，哪些手牌高頻小注？", "40BB CO open BB call，flop T98ss，哪些牌應 check back？", "22BB HJ open BB call，flop K83r，小注後 turn SPR 如何規劃？"]
-    })],
-    ["08-PostflopSPR/07-River價值與Bluff.md", focusedLesson({
-      title: "River 價值與 Bluff：不要用情緒補槍",
-      scene: "你打到 river，底池已大。MTT 的 river 決策常受出局壓力、pay jump 與多桌疲勞影響，不能只憑感覺補第三槍。",
-      concepts: ["River value 先問 worse hand 是否會 call。", "River bluff 需要 blocker 與對手可棄牌區。", "對 under-bluff pool，可降低 bluff-catch。", "ICM 下薄 value 與 bluff-catch 都要收。"],
-      process: ["回推 preflop range 與 flop/turn line。", "列出對手到 river 的強牌、 bluff-catcher、missed draw。", "Value bet 只打能被更差牌跟的組合。", "Bluff 選阻擋牌好、攤牌價值低的牌。"],
-      rangeRefs: ["對應 preflop RFI 與 BB defend 表。"],
-      edges: ["Top pair top kicker：低 SPR 常 value，高 SPR 仍看 runout。", "Second pair：多數是 showdown value，不要亂 bluff。", "Missed nut flush draw blocker：可成為 bluff。", "低 missed draw 無 blocker：不要自動開槍。"],
-      mistakes: ["因為前兩街下注就 river 一定要打。", "用有攤牌價值的牌轉 bluff。", "對不會 fold 的玩家大 bluff。"],
-      drills: ["BTN vs BB，A high missed flush draw 到 river，何時可 bluff？", "你有 KQ 在 KJ742，對手 river check，是否 value？", "Bubble 中碼 river second pair 面對大碼 pot bet，如何思考？"]
-    })],
-    ["08-PostflopSPR/08-Multiway底池.md", focusedLesson({
-      title: "Multiway 底池：範圍優勢會被稀釋",
-      scene: "兩個以上對手看 flop。MTT 中 multiway 常來自 BB 價格好、短碼平跟或後位跟注。這類底池不能用 heads-up c-bet 頻率硬套。",
-      concepts: ["Multiway 時 bluff 頻率下降。", "Top pair 弱 kicker 的價值下降。", "Nut draw 和 nutted value 的重要性上升。", "多人底池更少用低 equity 空氣下注。"],
-      process: ["先確認每個玩家 preflop range。", "只用清楚 value 與高 equity draw 建立下注。", "邊界 made hand 多用 check 控制底池。", "短碼玩家存在時，注意下注是否讓自己被迫 call-off。"],
-      rangeRefs: ["RFI 表與 BB defend 表一起回推。"],
-      edges: ["Top pair weak kicker：多人底池降級。", "Overpair：濕牌多人仍需小心。", "Nut flush draw：可半詐唬但要看 fold equity。", "Bottom set：價值高但要注意同花順完成牌。"],
-      mistakes: ["三人底池仍全 range c-bet。", "用 second pair 保護性下注。", "多人濕牌面 overpair 無腦打光。"],
-      drills: ["CO open BTN call BB call，flop J87ss，你 AA 如何規劃？", "BTN open SB call BB call，flop A72r，你 KQ 是否 c-bet？", "HJ open CO call BB call，flop 654 two-tone，overpair 怎麼打？"]
-    })],
-    ["08-PostflopSPR/09-Probe與DelayedCbet.md", focusedLesson({
-      title: "Probe 與 Delayed C-bet：對手示弱後再拿回主動",
-      scene: "Preflop aggressor flop check back，turn 到你或你在位置上面對第二次 check。這是線上 MTT 常被忽略的盈利點。",
-      concepts: ["Flop check back 後，turn probe 可以攻擊 capped range。", "Delayed c-bet 適合有 showdown value 或 backdoor equity 的 flop check。", "OOP probe 要看 turn 是否改善你的 range。", "短碼時 probe size 要避免把自己綁死。"],
-      process: ["先判斷 flop check back 代表對手 range 是否 capped。", "Turn 若改善你的 range，可用中小 size probe。", "有 showdown value 的牌不要過度轉 bluff。", "River 只延續 blocker 好或 value 清楚的牌。"],
-      rangeRefs: ["BTN RFI vs BB defend。", "CO RFI vs BB defend。"],
-      edges: ["Turn A/K：常改善 preflop aggressor。", "低牌配對：常改善 BB defend。", "Second pair：可 check-call，不必硬 probe。", "Nut draw：可 probe 建立 fold equity。"],
-      mistakes: ["對手 flop check back 就 turn 亂打。", "沒有 river 計畫就 probe。", "短碼 probe/fold 浪費太多 stack。"],
-      drills: ["BB defend vs BTN，flop 964r check/check，turn A，你是否 probe？", "BTN open BB call，flop K72r 你 check back AQ，turn 5 是否 delayed c-bet？", "BB defend 87s，flop T64ss check/check，turn 2s 如何處理？"]
-    })],
-    ["08-PostflopSPR/10-短碼PostflopAllIn.md", focusedLesson({
-      title: "短碼 Postflop All-in 路線",
-      scene: "Effective stack 15-25BB，翻牌後 SPR 很低。這類 spot 的重點不是玩三街技巧，而是知道哪些 flop 已進入 all-in 路線。",
-      concepts: ["低 SPR 下，top pair、overpair、強 draw 的承諾門檻降低。", "Flop 小注可能已經代表 turn shove。", "不想承諾的邊界牌應該更常 check。", "ICM 下承諾門檻會變高，尤其被大碼 cover 時。"],
-      process: ["先算 SPR。", "把手牌分成 value commit、draw commit、showdown control、air give-up。", "下注前決定 turn 是否推。", "面對 raise，回到 equity 與 ICM，不用情緒跟。"],
-      rangeRefs: ["20BB RFI 表。", "20BB BB defend 表。", "Push/Fold 表作短碼 preflop 參考。"],
-      edges: ["Top pair good kicker：低 SPR 常可承諾。", "Top pair weak kicker：看對手 range 和 ICM。", "Nut flush draw + overcard：可進攻。", "Gutshot no overcard：不要用短碼亂燒。"],
-      mistakes: ["20BB flop bet/fold 太多。", "低 SPR 還想慢慢控池到 river。", "ICM 下用弱 top pair 跟大碼打光。"],
-      drills: ["20BB BTN KQ open BB call，flop K84r，是否進入承諾？", "18BB CO A5s open BB call，flop 762ss，你有 nut FD，如何打？", "22BB BB defend Q8s vs BTN，flop QJ7ss，是否願意 check-raise all-in？"]
-    })],
-    ["06-ICM/02-Bubble中碼.md", focusedLesson({
-      title: "Bubble 中碼：先保護 call-off",
-      scene: "接近 bubble，你是中碼，桌上有大碼 cover 你，也有短碼等待出局。這是最容易用 chip EV 犯錯的階段。",
-      concepts: ["中碼最大的錯誤是和 cover 自己的大碼打大底池。", "ICM 最先影響 call-off range。", "Open 不一定要大幅縮，但 RF 與 call-off 要重分層。", "短碼存在時，中碼要避免邊界 all-in。"],
-      process: ["先用 chip EV 表找 baseline。", "把 call-off 的 M/邊界牌砍掉。", "對不能 cover 的大碼少打薄邊。", "對會過度棄牌的中碼可加壓，但別撞大碼。"],
-      rangeRefs: ["25BB/20BB RFI 表。", "Rejam 表只作 chip EV 起點，Bubble 要收。"],
-      edges: ["AJo/KQo：chip EV 可打，ICM 可能變 fold。", "77/88：面對大碼 jam 要小心。", "A5s：blocker 有價值，但被 call 後風險大。", "KTs/QJs：位置與 cover 關係決定。"],
-      mistakes: ["Bubble 中碼用平常 range call all-in。", "為了偷盲撞上唯一 cover 你的大碼。", "看到短碼就完全不打，讓自己變短碼。"],
-      drills: ["Bubble 24BB HJ AJo 面對大碼 CO jam，如何思考？", "Bubble 30BB BTN K7s，兩盲都是中碼，是否 open？", "Bubble 18BB SB A5s 對大碼 BTN open 是否 rejam？"]
-    })],
-    ["06-ICM/03-FinalTablePayJump.md", focusedLesson({
-      title: "Final Table Pay Jump：籌碼不是線性價值",
-      scene: "Final table，pay jump 明顯。每個 all-in 都不只是 chip EV，還牽涉名次、cover 關係與短碼壓力。",
-      concepts: ["籌碼越多，邊際價值越低；籌碼歸零的成本最大。", "大碼能施壓中碼，但要避開另一個大碼。", "中碼避免跟 cover 自己的人打光。", "短碼要選擇 fold equity 最高的 first-in spot。"],
-      process: ["先列出每個人的 stack 與 cover 關係。", "判斷誰能施壓誰。", "把 call-off range 比 chip EV 收緊。", "只在你能施壓且不被反制時放寬 open。"],
-      rangeRefs: ["Push/Fold 表作短碼 first-in 起點。", "RFI/Rejam 表在 FT 要按 cover 關係調整。"],
-      edges: ["KQo/AJo：很強，但對大碼 jam 不一定能 call。", "小對：first-in 有價值，call-off 常變差。", "Suited Ax：blocker 加壓好，但被 call 時要注意 domination。", "Broadway suited：對短碼可施壓，對大碼收。"],
-      mistakes: ["FT 還把 chip EV 表當答案。", "大碼無腦 bully 撞另一大碼。", "短碼過度等待，錯過 BTN/SB first-in。"],
-      drills: ["FT 7 left，你 22BB 中碼，CO 大碼 jam，你 BB AJo 是否 call？", "FT 5 left，你大碼 BTN K7s，兩盲中碼，是否 open？", "FT 短碼 8BB CO Q9s，是否找 first-in？"]
-    })],
-    ["07-PKO/02-PKOCover關係.md", focusedLesson({
-      title: "PKO Cover 關係：先問能不能拿賞金",
-      scene: "PKO 線上 MTT。你面對短碼 all-in 或考慮 rejam。第一件事不是看 bounty 多香，而是你是否 cover 對手。",
-      concepts: ["只有 cover 對手才有 bounty equity。", "被對手 cover 時，PKO 不能替你降低出局成本。", "Cover 多個短碼時，isolation all-in 價值上升。", "Bounty 越大，call 可放寬，但 dominated hand 仍要小心。"],
-      process: ["先確認你是否 cover all-in 玩家。", "估算 bounty 相對底池籌碼價值。", "看背後是否有人能 overcall 或 squeeze。", "只放寬接近臨界的 call，不把垃圾牌變成好牌。"],
-      rangeRefs: ["Rejam 表的 M hand 是 PKO 常調整區。", "Push/Fold 表只作 first-in 起點，不是 PKO call 表。"],
-      edges: ["A8o/A9o：cover 短碼時可放寬，仍怕 dominated。", "KTo/QJo：bounty 足夠才進入討論。", "小對：對短碼 bounty 有價值，但 multiway 風險高。", "Suited Ax：blocker 與 equity 都不錯。"],
-      mistakes: ["不 cover 還為 bounty call。", "看到 bounty 就用任何 Ax 跟。", "忽略背後大碼可能 overcall。"],
-      drills: ["PKO 你 28BB cover 8BB BTN jam，BB A8o 是否 call？", "PKO 你 12BB 不 cover CO，CO jam，你 KJo 能否因 bounty call？", "PKO 你大碼 SB，BTN 7BB open，哪些 M hand 可加壓？"]
-    })],
-    ["09-線上多桌/02-線上DecisionLoop.md", focusedLesson({
-      title: "線上多桌 Decision Loop",
-      scene: "你同時打多桌線上 MTT，時間有限。你需要一套固定順序，讓每手牌先靠 baseline，再做少量 exploit。",
-      concepts: ["先位置與 effective stack，再看 action。", "先 baseline range，再看桌況調整。", "多桌時不要臨場發明大策略。", "每次調整只動 M/RF 邊界，不重寫整套 range。"],
-      process: ["讀 action：first-in、vs open、vs jam、postflop。", "讀 effective stack 與 cover 關係。", "開對應表：RFI、BB defend、Rejam、Push/Fold。", "只根據明確資訊調整邊界。", "做完手牌後標記不確定 spot，休息時 review。"],
-      rangeRefs: ["全部 MTT v2 range 表。", "測驗頁用來訓練快速分類。"],
-      edges: ["Unknown：先 baseline。", "盲位 tight：偷盲邊界加寬。", "盲位 aggressive：RF 底部收緊。", "ICM heavy：call-off 先收。"],
-      mistakes: ["多桌時用情緒 call。", "只因一個 showdown 就大幅改 range。", "忘記看 effective stack，只看自己籌碼。"],
-      drills: ["開三桌時，遇到 25BB CO KTo，列出 5 秒內決策順序。", "Unknown BB defend 太寬的證據需要幾手牌？", "你被同一玩家 3bet 兩次，哪些牌先調整？"]
-    })],
-    ["09-線上多桌/03-Review流程.md", focusedLesson({
-      title: "課後 Review 流程：把錯手變成範圍修正",
-      scene: "打完 session 後，你不能只看輸贏。MTT 學習要把每個不確定 spot 回到範圍、stack mode、ICM 與對手傾向。",
-      concepts: ["先分類 spot，再評估手牌。", "錯誤通常不是單手牌，而是 range 邊界不清楚。", "每次 review 只修一個類型，避免學習發散。", "測驗應回到實戰錯誤，而不是背答案。"],
-      process: ["把手牌分成 RFI、BB defend、Rejam、Push/Fold、Postflop、ICM/PKO。", "對照 MTT v2 range 表找 baseline。", "寫下你當下的假設與實際對手資訊。", "標記錯誤類型：開太寬、call-off 太寬、錯過 rejam、postflop SPR 錯。", "用測驗重跑同類型 10 題。"],
-      rangeRefs: ["RFI 全表。", "BB defend 全表。", "Rejam / Push-Fold 全表。", "測驗 1-5。"],
-      edges: ["輸錢不等於錯，贏錢不等於對。", "All-in spot 要分 first-in 與 call-off。", "ICM spot 必須記 cover 關係。", "Postflop spot 必須記 SPR。"],
-      mistakes: ["只 review 最大底池。", "只看結果不看 range。", "把 bad beat 當策略問題。", "一次想改十個 leak。"],
-      drills: ["挑 10 手出局前 30 分鐘的牌，分類成六種 spot。", "找出一手 25BB open/fold 錯誤，回到 RFI 表修正。", "找出一手 BB defend 過寬，寫下下次要 fold 的底部。"]
+    ["00-主線課程/11-四週訓練計畫.md", coreLesson({
+      title: "四週訓練計畫：把教材變成牌桌反應",
+      purpose: "最後一章把主線教材轉成訓練安排。目標不是讀完，而是讓你在線上 MTT 中能穩定做出同一套決策。",
+      body: `
+第一週只練分類。每天拿 30 手牌，不判斷輸贏，只分類：RFI、BB defend、Rejam、Push/Fold、Call-off、Postflop SPR、ICM/PKO。你要把 action 類型練到直覺，因為一旦分類錯，後面查哪張表都會錯。
+
+第二週練 RFI 與 BB defend。每天選兩個 stack，例如 40BB 與 25BB，跑完 UTG 到 SB 的 RFI，再選 BB vs HJ/CO/BTN。重點不是背所有格，而是抓出每個位置的邊界：A9o、KTo、QJo、小對、低 suited connector。
+
+第三週練短碼與 rejam。每天用 25BB、20BB、15BB rejam 表，再接 12BB、10BB、8BB push/fold。每手都要寫清楚：這是 first-in 還是面對 open；有沒有 fold equity；背後還有誰；ICM 是否讓 call-off 收緊。
+
+第四週練 postflop 與 ICM/PKO。每天 review 5 手大底池，先算 SPR，再回推 preflop range。Bubble/FT/PKO spot 要補 cover 關係。你不是看結果，而是看當時決策流程是否完整。
+
+每週最後做測驗。錯題不要只看答案，要回到主線章節與 range 表，標記錯誤類型。錯誤類型只分幾種：用錯表、stack mode 錯、open 太寬、call-off 太寬、錯過 rejam、BB defend 過寬、postflop SPR 沒算、ICM/PKO cover 關係錯。
+      `,
+      rangeRefs: ["全部 range 表。", "8 份測驗。", "主線課程 00-10 作回補教材。"],
+      examples: [
+        "你 review 一手 25BB CO KTo 被 BB rejam fold。不要只記輸了 2bb，要標記：RFI，25BB，CO，RF，BB aggressive。下一次 CO 底部要收。",
+        "你 10BB BTN Q9o 棄牌，後來發現盲位 tight。這是錯過 first-in fold equity，不是牌不好。回補 10BB BTN Push/Fold。",
+        "你 FT 中碼 AJo call 大碼 jam 出局。這不是 bad beat review，而是 ICM call-off review。回到第 07 章，先問 cover 關係。"
+      ],
+      checkpoints: ["你能不能把錯手歸類成固定錯誤類型。", "你能不能安排每天 30 手分類訓練。", "你能不能把測驗錯題回補到主線章節。"],
+      drills: ["建立一份 30 手牌 review 表，欄位包含 spot、stack、range 表、label、錯誤類型。", "連續三天只練 25BB RFI 和 BB rejam，不讀其他章。", "完成 80 題測驗後，統計錯最多的兩類 spot。"]
     })]
   ];
 
@@ -871,8 +704,7 @@ ${body}`);
 resetDir("lessons");
 resetDir("ranges");
 resetDir("quizzes");
-generateLessons();
-generateFocusedLessons();
+generateCoreLessons();
 generateRfiRanges();
 generateBbDefendRanges();
 generateRejamRanges();
@@ -898,3 +730,4 @@ Range JSON 是 MTT v2 的 source of truth。每張表必須包含：
 \`hands\` 只需要列出非 fold；renderer 會把其他 hand 視為 \`F\`。`);
 
 console.log("Generated MTT v2 lessons, ranges, and quizzes.");
+

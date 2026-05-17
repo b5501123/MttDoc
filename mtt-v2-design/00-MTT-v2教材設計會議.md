@@ -487,3 +487,22 @@ Build 順序：
 5. app 範圍表頁
 
 等 range renderer 確認好，再開始大批重寫 MTT 教材。
+
+## 2026-05-17 改版決議：主線化與 Range 視覺重做
+
+初版的方向「大量章節 + range + 題庫」仍然太像文件庫。這一輪改成先做可學習的主線課程：
+
+- MTT 教材壓成 12 篇長主線章節，不再拆成 40 多篇短碎片。
+- App 索引用 `主線教材 / 範圍表 / 測驗` 分組，讓學習者先照主線走，再查 range。
+- Range 表以 13x13 strategy matrix 作為核心畫面，每格只顯示手牌與行動比例色塊，避免格內文字過擠。
+- 色塊使用 All-in / Raise / 3Bet / Call / Fold 的水平比例，不只用單一底色。
+- 完整策略清單放在表格下方，按 All-in / Raise / 3Bet / Call / Fold 分區列出手牌。
+- 右側 All-in/Raise/Call/Fold 統計先不做，避免畫面變複雜；目前只保留上方 legend 與下方標籤、規則、邊界手牌。
+- 本版仍標記為 training baseline，不宣稱是 solver 精準輸出。
+
+目前打包目標：
+
+- lesson: 12
+- range: 69
+- quiz: 8
+- total: 89

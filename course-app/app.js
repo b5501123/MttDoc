@@ -46,17 +46,17 @@ const courseUi = {
     title: "MTT v2 線上 BBA",
     search: "搜尋 RFI、BB defend、rejam、push/fold、ICM、PKO...",
     pathIntro: "先讀 Stack Mode，再進 RFI、BB 防守、Rejam、Push/Fold，最後補 ICM、PKO 與 postflop SPR。每個 preflop 章節都要回到範圍表。",
-    quickIntro: "這裡放最常用的範圍表入口。範圍表是訓練 baseline，不是即時輔助工具。",
+    quickIntro: "這裡放最常用的範圍表入口。範圍表現在用比例色塊顯示行動頻率，先看顏色分佈，再看手牌標籤。",
     reviewIntro: "複盤時先分類 spot，再對照範圍表。不要只看輸贏結果，要找 open 太寬、call-off 太寬、錯過 rejam 或 SPR 規劃錯誤。",
     routes: [
-      ["00-課程索引", "1. 課程索引", "確認 v2 學習順序與使用方式。"],
-      ["Stack Mode 決策地圖", "2. Stack Mode", "先學有效籌碼如何改變整套策略。"],
-      ["25BB 壓力 RFI", "3. 25BB RFI", "把 open 分成 raise-call、raise-fold、mixed。"],
-      ["BB 防守不是保護盲注", "4. BB 防守", "用價格、realization、rejam 建立防守框架。"],
-      ["Rejam 三要素", "5. Rejam", "Fold equity、opener range、背後玩家。"],
-      ["短碼不是等 AA", "6. Push/Fold", "12BB、10BB、8BB first-in 決策。"],
-      ["ICM 先影響 Call-off", "7. ICM / PKO", "先收 call-off，再調整 open 與 bounty。"],
-      ["課後 Review 流程", "8. 複盤流程", "把錯手回到 range 與 stack mode。"]
+      ["怎麼學這套 MTT", "1. 學習方法", "先建立一手牌到整場比賽的決策線。"],
+      ["有效籌碼與 Stack Mode", "2. Stack Mode", "把 60BB 到 8BB 串成同一套深度邏輯。"],
+      ["RFI 完整主線", "3. RFI 主線", "不是背 open 表，而是先規劃被反擊。"],
+      ["BB 防守完整主線", "4. BB 防守", "價格、realization、call、3bet、rejam 一次串起來。"],
+      ["Rejam 與反偷盲", "5. Rejam", "Fold equity、opener range、背後玩家、ICM。"],
+      ["短碼 Push/Fold", "6. 短碼", "分清 first-in shove 與 call-off。"],
+      ["Postflop SPR 主線", "7. Postflop", "SPR、牌面優勢、turn commitment、river。"],
+      ["四週訓練計畫", "8. 訓練計畫", "把教材轉成牌桌反應。"]
     ],
     quick: [
       ["mttv2-rfi-25bb-9max-btn", "25BB BTN RFI", "最常用後位 open 與 raise-call / raise-fold。"],
@@ -250,6 +250,9 @@ function courseDocs(courseId = selectedCourse) {
 }
 
 function groupName(doc) {
+  if (doc.contentType === "lesson") return "主線教材";
+  if (doc.contentType === "range") return "範圍表";
+  if (doc.contentType === "quiz") return "測驗";
   const parts = doc.path.split("/");
   return parts.length > 1 ? parts[0] : "總覽";
 }
@@ -348,13 +351,22 @@ function showSection(section) {
   for (const [key, element] of Object.entries(sectionMap)) {
     element.classList.toggle("active", key === section);
   }
-  document.body.className = `section-${section}`;
+  setBodyMode(section);
   screenTitle.textContent = sectionTitles[section];
   document.querySelectorAll(".bottom-nav-btn").forEach((button) => {
     button.classList.toggle("active", button.dataset.section === section);
   });
   if (section !== "reader") indexPane.classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function activeSectionName() {
+  return Object.entries(sectionMap).find(([, element]) => element.classList.contains("active"))?.[0] || "reader";
+}
+
+function setBodyMode(section = activeSectionName()) {
+  const rangeMode = section === "reader" && reader.classList.contains("range-reader");
+  document.body.className = `section-${section}${rangeMode ? " reading-range" : ""}`;
 }
 
 function openDocByQuery(query) {
@@ -390,6 +402,7 @@ async function loadDoc(index) {
   const response = await fetch(doc.url);
   const content = await response.text();
   reader.classList.toggle("range-reader", doc.contentType === "range");
+  setBodyMode();
   reader.innerHTML = doc.contentType === "range" ? content : markdownToHtml(content);
   document.title = `${doc.title} - ${doc.courseShortTitle} 教材`;
 
