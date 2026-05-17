@@ -497,7 +497,8 @@ Build 順序：
 - Range 表以 13x13 strategy matrix 作為核心畫面，每格只顯示手牌與行動比例色塊，避免格內文字過擠。
 - 色塊使用 All-in / Raise / 3Bet / Call / Fold 的水平比例，不只用單一底色。
 - 完整策略清單放在表格下方，按 All-in / Raise / 3Bet / Call / Fold 分區列出手牌。
-- 右側 All-in/Raise/Call/Fold 統計先不做，避免畫面變複雜；目前只保留上方 legend 與下方標籤、規則、邊界手牌。
+- 標籤、備註、邊界手牌收進可展開說明區，不佔主要教材版面。
+- 右側 All-in/Raise/Call/Fold 統計先不做，避免畫面變複雜；目前只保留上方 legend、下方策略清單與可展開說明區。
 - 本版仍標記為 training baseline，不宣稱是 solver 精準輸出。
 
 目前打包目標：

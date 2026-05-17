@@ -513,25 +513,6 @@ th {
   background: #151515;
 }
 
-.range-toolbar {
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 10px;
-  border-bottom: 1px solid #252525;
-  background: #1b1b1b;
-}
-
-.range-toolbar strong {
-  color: #f7faf8;
-}
-
-.range-toolbar span {
-  color: #a7b2ae;
-  font-size: 0.84rem;
-}
-
 .range-action-legend {
   display: flex;
   flex-wrap: wrap;
@@ -602,22 +583,10 @@ th {
   gap: 10px;
 }
 
-.range-section-title {
-  padding: 12px;
-  border: 1px solid #252525;
-  border-radius: 8px;
-  background: #181818;
-}
-
-.range-section-title h3 {
-  margin: 0 0 4px;
-  color: #f4f6f5;
-}
-
-.range-section-title p {
+.range-section-heading {
   margin: 0;
-  color: #a7b2ae;
-  font-size: 0.86rem;
+  color: #f4f6f5;
+  font-size: 1rem;
 }
 
 .strategy-group {
@@ -672,10 +641,29 @@ th {
   font-weight: 800;
 }
 
+.range-extra {
+  border: 1px solid #252525;
+  border-radius: 8px;
+  background: #151515;
+}
+
+.range-extra summary {
+  min-height: 42px;
+  padding: 9px 12px;
+  color: #dce4e1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.range-extra[open] summary {
+  border-bottom: 1px solid #252525;
+}
+
 .range-info-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
   gap: 12px;
+  padding: 12px;
 }
 
 .range-legend {

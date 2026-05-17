@@ -187,10 +187,6 @@ function renderRangeHtml(range) {
   </header>
 
   <section class="range-matrix-panel">
-    <div class="range-toolbar">
-      <strong>範圍</strong>
-      <span>每格用色塊比例顯示行動頻率，紅色代表進攻，綠色代表棄牌或保守線。</span>
-    </div>
     <div class="range-action-legend">
       ${Object.entries(actionPalette).map(([action, color]) => `<span><i style="background:${color};"></i>${escapeHtml(action)}</span>`).join("")}
     </div>
@@ -203,26 +199,26 @@ function renderRangeHtml(range) {
   </section>
 
   <section class="range-strategy-list">
-    <div class="range-section-title">
-      <h3>策略手牌清單</h3>
-      <p>主表只顯示牌型；完整行動分組放在這裡，mixed hand 會同時出現在兩個行動中並標出比例。</p>
-    </div>
+    <h3 class="range-section-heading">策略手牌清單</h3>
     ${strategyList}
   </section>
 
-  <div class="range-info-grid">
-    <section class="range-legend">
-      <h3>標籤</h3>
-      ${legend}
-    </section>
+  <details class="range-extra">
+    <summary>說明、標籤與邊界手牌</summary>
+    <div class="range-info-grid">
+      <section class="range-legend">
+        <h3>標籤</h3>
+        ${legend}
+      </section>
 
-    <section class="range-notes">
-      <h3>使用規則</h3>
-      <ul>${notes}</ul>
-      <h3>邊界手牌</h3>
-      <ul>${boundary}</ul>
-    </section>
-  </div>
+      <section class="range-notes">
+        <h3>備註</h3>
+        <ul>${notes}</ul>
+        <h3>邊界手牌</h3>
+        <ul>${boundary}</ul>
+      </section>
+    </div>
+  </details>
 </section>`;
 }
 
