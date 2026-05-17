@@ -43,5 +43,5 @@ createServer((req, res) => {
   });
   createReadStream(filePath).pipe(res);
 }).listen(port, host, () => {
-  console.log(`Course app server: http://${host}:${port}/course-app/`);
+  console.log(`Course app server: http://${host}:${port}/`);
 });

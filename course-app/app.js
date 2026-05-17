@@ -1,7 +1,7 @@
 let manifest = [];
 let filtered = [];
 let currentIndex = 0;
-let selectedCourse = localStorage.getItem("selectedCourseId") || "mtt";
+let selectedCourse = localStorage.getItem("selectedCourseId") || "mtt-v2";
 let fontScale = Number(localStorage.getItem("readerFontScale") || "1");
 
 const indexPane = document.getElementById("indexPane");
@@ -41,65 +41,37 @@ const sectionTitles = {
 };
 
 const courseUi = {
-  mtt: {
+  "mtt-v2": {
     mark: "MTT",
-    title: "MTT 線上 BBA",
-    search: "搜尋 MTT、BBA、PKO、ICM、短碼...",
-    pathIntro: "用「先概念、再範圍、再情境、最後複盤」的順序讀。手機上不要一次讀完，照階段切。",
-    quickIntro: "比賽中或賽前快速看。這裡只放最常用入口，不取代完整教材。",
-    reviewIntro: "複盤不是記結果，是找錯誤類型。每手牌先判斷 effective stack，再判斷位置、賞金、ICM。",
+    title: "MTT v2 線上 BBA",
+    search: "搜尋 RFI、BB defend、rejam、push/fold、ICM、PKO...",
+    pathIntro: "先讀 Stack Mode，再進 RFI、BB 防守、Rejam、Push/Fold，最後補 ICM、PKO 與 postflop SPR。每個 preflop 章節都要回到範圍表。",
+    quickIntro: "這裡放最常用的範圍表入口。範圍表是訓練 baseline，不是即時輔助工具。",
+    reviewIntro: "複盤時先分類 spot，再對照範圍表。不要只看輸贏結果，要找 open 太寬、call-off 太寬、錯過 rejam 或 SPR 規劃錯誤。",
     routes: [
-      ["01-MTT基礎/01-籌碼EV與ICM.md", "1. 核心框架", "Chip EV、ICM、位置、BBA。"],
-      ["02-推注棄牌/03-各位置推注範圍圖表.md", "2. 短疊決策", "10BB push/fold、Nash、call range。"],
-      ["03-深疊翻牌前/01-開牌範圍.md", "3. Open 與 3-bet", "RFI、3-bet、偷盲與反偷。"],
-      ["07-PKO賞金賽/03-短馬NB10BB閃電賞金賽.md", "4. 短馬 NB 專題", "6-max BBA、25% 賞金池、limp 對策。"],
-      ["10-自我評估與練習/00-練習題目錄.md", "5. 題庫與複盤", "做題、標 leak、回到教材修正。"]
+      ["00-課程索引", "1. 課程索引", "確認 v2 學習順序與使用方式。"],
+      ["Stack Mode 決策地圖", "2. Stack Mode", "先學有效籌碼如何改變整套策略。"],
+      ["25BB 壓力 RFI", "3. 25BB RFI", "把 open 分成 raise-call、raise-fold、mixed。"],
+      ["BB 防守不是保護盲注", "4. BB 防守", "用價格、realization、rejam 建立防守框架。"],
+      ["Rejam 三要素", "5. Rejam", "Fold equity、opener range、背後玩家。"],
+      ["短碼不是等 AA", "6. Push/Fold", "12BB、10BB、8BB first-in 決策。"],
+      ["ICM 先影響 Call-off", "7. ICM / PKO", "先收 call-off，再調整 open 與 bounty。"],
+      ["課後 Review 流程", "8. 複盤流程", "把錯手回到 range 與 stack mode。"]
     ],
     quick: [
-      ["Antes與BBA結構", "BBA 底池", "前注預設、底池賠率、偷盲價值。"],
-      ["各位置推注範圍圖表", "10BB Push", "各位置 shove range 與邊界手。"],
-      ["短馬NB10BB", "短馬 NB", "20-30BB open、3-bet shove、limp。"],
-      ["Bubble打法", "Bubble", "大疊施壓、中疊保護、短疊找點。"],
-      ["決賽桌ICM", "FT ICM", "決賽桌 pay jump 與 call off。"],
-      ["心理與心態", "心態", "方差、賽前準備、複盤習慣。"]
+      ["mttv2-rfi-25bb-9max-btn", "25BB BTN RFI", "最常用後位 open 與 raise-call / raise-fold。"],
+      ["mttv2-rfi-20bb-9max-co", "20BB CO RFI", "短中碼偷盲與被 rejam 前規劃。"],
+      ["mttv2-bbdef-20bb-vs-btn", "20BB BB vs BTN", "BB 面對後位 open 的 call / rejam 分界。"],
+      ["mttv2-rejam-20bb-vs-btn", "20BB Rejam vs BTN", "用 blocker 與 fold equity 懲罰偷盲。"],
+      ["mttv2-pushfold-10bb-co", "10BB CO Push", "短碼 first-in shove baseline。"],
+      ["mttv2-pushfold-8bb-sb", "8BB SB Push", "BBA 下最常見的 SB 短碼施壓。"]
     ],
     review: [
-      ["1. 場景", "階段、人數、ITM、盲注、BBA。"],
-      ["2. Stack", "Hero / Villain / effective stack / 是否 cover。"],
-      ["3. 決策", "push、open、3-bet、call、fold。"],
-      ["4. Leak", "over-chase-bounty、wrong-stack-mode、under-defend-bb。"],
-      ["03-複盤方法論.md", "打開複盤方法論", "完整複盤流程與錯誤分類。"]
-    ]
-  },
-  "cash-game": {
-    mark: "CG",
-    title: "NLH Cash Game",
-    search: "搜尋 Cash、rake、3bet pot、BB defend、river...",
-    pathIntro: "以線上 6-max 100BB 為主線，先建立 preflop 和 SRP，再進 3bet pot、rake exploit 與複盤。",
-    quickIntro: "現金桌速查以位置、rake、pot type、SPR 和對手類型為核心，先判斷場景再選策略。",
-    reviewIntro: "Cash 複盤看的是長期 bb/100 漏水點。每手牌先標位置、pot type、effective stack、rake 與玩家類型。",
-    routes: [
-      ["00-目錄與學習路線/00-課程索引.md", "1. 課程索引", "確認 cash game 學習順序與預設場景。"],
-      ["01-Cash-Game基礎/03-Rake如何改變策略.md", "2. Rake 意識", "低 stakes 最先修正 cold call 與盲位漏水。"],
-      ["02-Preflop核心框架/01-6max位置與OpenRange.md", "3. Preflop 核心", "6-max open、call、3bet、4bet 和 blind defense。"],
-      ["03-Single-Raised-Pot/01-BTNvsBB模型.md", "4. SRP 主線", "BTN vs BB、牌面紋理、turn barrel、river value。"],
-      ["04-3bet-Pot/01-IP3betPot.md", "5. 3bet Pot", "IP / OOP 3bet pot、SPR、check range 與 exploit。"],
-      ["12-練習與複盤/00-練習題目錄.md", "6. 題庫", "100 題 cash game 決策題。"]
-    ],
-    quick: [
-      ["Rake如何改變策略", "Rake", "高 rake 下少 cold call，多 3bet / fold。"],
-      ["6max位置與OpenRange", "6-max Open", "UTG 收緊，BTN 攻擊，SB 謹慎。"],
-      ["SB與BB防守邏輯", "盲位", "SB 控制虧損，BB 看 realization。"],
-      ["BTNvsBB模型", "BTN vs BB", "最常見 SRP 模型。"],
-      ["OOP3betPot", "OOP 3bet", "需要 check range，不是全 range c-bet。"],
-      ["Under-bluff", "River Fold", "對 under-bluff pool 大幅 overfold。"]
-    ],
-    review: [
-      ["1. 位置", "UTG / HJ / CO / BTN / SB / BB。"],
-      ["2. Pot Type", "SRP、3bet pot、4bet pot、multiway。"],
-      ["3. Stack", "50BB、100BB、150BB+、短碼玩家。"],
-      ["4. Leak", "cold-call-too-wide、river-hero-call、miss-thin-value。"],
-      ["SessionReview模板.md", "打開 Session Review 模板", "用固定欄位複盤五手牌。"]
+      ["1. Spot", "RFI / BB defend / Rejam / Push-Fold / Postflop / ICM / PKO。"],
+      ["2. Stack", "Hero、Villain、effective stack、cover 關係。"],
+      ["3. Range", "先找 baseline，再標出 R+、R、M、RF、RC、RJ、AI。"],
+      ["4. Adjustment", "只調整邊界，不因單一結果重寫策略。"],
+      ["Review流程", "打開 Review 流程", "用固定欄位把錯手轉成下一次行動。"]
     ]
   }
 };
@@ -232,10 +204,11 @@ function markdownToHtml(markdown) {
 
 function normalizeDoc(doc) {
   return {
-    courseId: doc.courseId || "mtt",
-    courseTitle: doc.courseTitle || "MTT 線上 BBA",
-    courseShortTitle: doc.courseShortTitle || "MTT",
+    courseId: doc.courseId || "mtt-v2",
+    courseTitle: doc.courseTitle || "MTT v2 線上 BBA",
+    courseShortTitle: doc.courseShortTitle || "MTT v2",
     courseDescription: doc.courseDescription || "",
+    contentType: doc.contentType || "lesson",
     title: doc.title,
     path: doc.path,
     url: doc.url,
@@ -415,8 +388,9 @@ async function loadDoc(index) {
 
   reader.innerHTML = `<p>載入中...</p>`;
   const response = await fetch(doc.url);
-  const markdown = await response.text();
-  reader.innerHTML = markdownToHtml(markdown);
+  const content = await response.text();
+  reader.classList.toggle("range-reader", doc.contentType === "range");
+  reader.innerHTML = doc.contentType === "range" ? content : markdownToHtml(content);
   document.title = `${doc.title} - ${doc.courseShortTitle} 教材`;
 
   if (window.innerWidth <= 900) {
@@ -440,7 +414,7 @@ function applyFont() {
 }
 
 function renderPracticeList() {
-  const practiceDocs = courseDocs().filter((doc) => doc.title.includes("練習題") || doc.path.includes("練習題"));
+  const practiceDocs = courseDocs().filter((doc) => doc.contentType === "quiz" || doc.title.includes("練習題") || doc.path.includes("練習題") || doc.path.includes("quizzes"));
   if (!practiceDocs.length) {
     practiceList.innerHTML = `<p class="empty-state">這個課程目前沒有練習題。</p>`;
     return;
@@ -484,7 +458,7 @@ function selectCourse(courseId) {
 async function init() {
   const response = await fetch("./content-manifest.json");
   manifest = (await response.json()).map(normalizeDoc);
-  if (!courseDocs(selectedCourse).length) selectedCourse = manifest[0]?.courseId || "mtt";
+  if (!courseDocs(selectedCourse).length) selectedCourse = manifest[0]?.courseId || "mtt-v2";
 
   const saved = Number(localStorage.getItem(`lastDocIndex:${selectedCourse}`));
   const legacy = Number(localStorage.getItem("lastDocIndex") || "0");
