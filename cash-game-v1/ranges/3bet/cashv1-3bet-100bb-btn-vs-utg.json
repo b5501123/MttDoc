@@ -1,0 +1,60 @@
+{
+  "id": "cashv1-3bet-100bb-btn-vs-utg",
+  "title": "100BB BTN vs UTG Open",
+  "game": "NLH Cash 6-max 100BB",
+  "table": "6max",
+  "spot": "3Bet vs Open",
+  "stackBb": 100,
+  "position": "BTN",
+  "villainPosition": "UTG",
+  "openSize": "2.5bb",
+  "source": "training-baseline",
+  "legend": {
+    "R": "open / raise",
+    "M": "mixed / pool adjustment",
+    "F": "fold",
+    "C": "call / defend",
+    "3B": "3bet",
+    "4B": "4bet"
+  },
+  "hands": {
+    "22": "C",
+    "33": "C",
+    "44": "C",
+    "55": "C",
+    "66": "C",
+    "77": "C",
+    "88": "C",
+    "99": "C",
+    "AA": "3B",
+    "KK": "3B",
+    "QQ": "3B",
+    "JJ": "3B",
+    "AKs": "3B",
+    "AKo": "3B",
+    "A5s": "3B",
+    "A4s": "3B",
+    "TT": "C",
+    "AQs": "C",
+    "AJs": "C",
+    "KQs": "C",
+    "QJs": "C",
+    "JTs": "C",
+    "T9s": "C",
+    "AQo": "C",
+    "ATs": "M",
+    "KJs": "M",
+    "QTs": "M",
+    "98s": "M"
+  },
+  "notes": [
+    "3bet bluff 需要 blocker、playability 與 fold equity。",
+    "OOP flat 受 rake 懲罰，SB 特別要少 flat。"
+  ],
+  "boundary": [
+    "A5s-A2s",
+    "KTs/QTs/JTs",
+    "小對 22-66",
+    "KJo/QJo/A9o"
+  ]
+}

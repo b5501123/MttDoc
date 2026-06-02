@@ -1,0 +1,44 @@
+{
+  "id": "cashv1-4bet-100bb-utg-vs-btn",
+  "title": "100BB UTG Continue vs BTN 3bet",
+  "game": "NLH Cash 6-max 100BB",
+  "table": "6max",
+  "spot": "4Bet Continue",
+  "stackBb": 100,
+  "position": "UTG",
+  "villainPosition": "BTN 3bet",
+  "openSize": "2.5bb",
+  "source": "training-baseline",
+  "legend": {
+    "R": "open / raise",
+    "M": "mixed / pool adjustment",
+    "F": "fold",
+    "C": "call / defend",
+    "3B": "3bet",
+    "4B": "4bet"
+  },
+  "hands": {
+    "AA": "4B",
+    "KK": "4B",
+    "QQ": "4B",
+    "AKs": "4B",
+    "AKo": "4B",
+    "JJ": "C",
+    "TT": "C",
+    "AQs": "C",
+    "AQo": "C",
+    "KQs": "C",
+    "A5s": "M",
+    "A4s": "M"
+  },
+  "notes": [
+    "4bet bluff 要有 fold equity；對 value-heavy pool 收掉 Axs bluff。",
+    "OOP call 3bet 要比 IP 更謹慎。"
+  ],
+  "boundary": [
+    "A5s-A2s",
+    "JJ/TT/99",
+    "AQo/AJs",
+    "KQs/KJs"
+  ]
+}

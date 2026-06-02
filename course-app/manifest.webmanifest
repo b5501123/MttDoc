@@ -1,7 +1,7 @@
 {
-  "name": "MTT v2 教材閱讀器",
-  "short_name": "MTT v2",
-  "description": "內建 MTT v2 線上 BBA 課文、範圍表與測驗的手機閱讀器。",
+  "name": "Poker Course 教材閱讀器",
+  "short_name": "Poker Course",
+  "description": "內建 MTT v2 與 Cash Game v1 課文、範圍表與測驗的手機閱讀器。",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f7f8f5",

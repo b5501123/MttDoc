@@ -1,8 +1,42 @@
-# MTT Course App Release / TG 打包紀錄
+# Poker Course App Release / TG 打包紀錄
 
 此文件記錄 `docs/course-app` 的 Android 打包與 Telegram 發送流程。流程參考 `C:\Stock` 的 release 習慣，但這個教材 app 使用專案內的 Capacitor / Android 專案獨立打包。
 
 ## Release 紀錄
+
+### v1.0.0 - 2026-06-02 Poker Course debug
+
+狀態：Released
+
+```text
+APK:     C:\mtt-gto-solver\docs\course-app\releases\poker-course-v1.0.0-202606020-debug.apk
+TG ZIP:  C:\mtt-gto-solver\docs\course-app\releases\poker-course-v1.0.0-202606020-debug.zip
+TG 頻道: 股票測試頻道
+TG message_id: 1853
+Caption: Poker Course App 2026-06-02 - MTT v2 + Cash Game v1 (MTT 12/69/8, Cash 9/20/6)
+```
+
+內容：
+
+- MTT v2：12 篇主線課文、69 張範圍表、8 份測驗。
+- Cash Game v1：9 篇主線課文、20 張範圍表、6 份測驗，共 60 題。
+- APK manifest 已驗證總計 124 筆內容。
+- APK 內 `cashv1-rfi-100bb-6max-btn.html` 已驗證 169 格、沒有格內使用說明、策略清單在矩陣下方。
+
+### v1.0.0 - 2026-06-02 MTT v2 debug
+
+狀態：Released
+
+```text
+APK:     C:\mtt-gto-solver\docs\course-app\releases\mtt-v2-course-v1.0.0-202606020-debug.apk
+TG ZIP:  C:\mtt-gto-solver\docs\course-app\releases\mtt-v2-course-v1.0.0-202606020-debug.zip
+TG 頻道: 股票測試頻道
+TG message_id: 1852
+```
+
+內容：
+
+- MTT v2：12 篇主線課文、69 張範圍表、8 份測驗。
 
 ### v1.0.0 - 2026-05-16
 

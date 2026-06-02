@@ -4,14 +4,24 @@ import { basename, dirname, join, relative } from "node:path";
 const root = process.cwd();
 const out = join(root, "www");
 const ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
-const course = {
-  id: "mtt-v2",
-  title: "MTT v2 線上 BBA",
-  shortTitle: "MTT v2",
-  description: "線上 MTT、Big Blind Ante、有效籌碼、RFI、BB 防守、Rejam、Push/Fold、ICM、PKO 與 postflop SPR。",
-  docsRoot: join(root, "..", "mtt-v2"),
-  contentDir: "mtt-v2"
-};
+const courses = [
+  {
+    id: "mtt-v2",
+    title: "MTT v2 線上 BBA",
+    shortTitle: "MTT v2",
+    description: "線上 MTT、Big Blind Ante、有效籌碼、RFI、BB 防守、Rejam、Push/Fold、ICM、PKO 與 postflop SPR。",
+    docsRoot: join(root, "..", "mtt-v2"),
+    contentDir: "mtt-v2"
+  },
+  {
+    id: "cash-game-v1",
+    title: "Cash Game v1 線上 6-max",
+    shortTitle: "Cash v1",
+    description: "線上 NLH Cash Game、6-max、100BB、RFI、3bet、盲位防守、4bet pot、postflop、rake 與 pool exploit。",
+    docsRoot: join(root, "..", "cash-game-v1"),
+    contentDir: "cash-game-v1"
+  }
+];
 const appFiles = [
   "index.html",
   "styles.css",
@@ -80,10 +90,11 @@ const actionPalette = {
   Allin: "#7f2a25",
   Raise: "#d84b43",
   "3Bet": "#b65fcf",
+  "4Bet": "#d79a37",
   Call: "#4f8fc8",
   Fold: "#75ad68"
 };
-const actionOrder = ["Allin", "Raise", "3Bet", "Call", "Fold"];
+const actionOrder = ["Allin", "Raise", "3Bet", "4Bet", "Call", "Fold"];
 
 function handCombos(hand) {
   if (hand[0] === hand[1]) return 6;
@@ -94,11 +105,14 @@ function strategyForLabel(label, spot) {
   const s = String(spot || "").toLowerCase();
   if (label === "AI" || label === "RJ") return [{ action: "Allin", pct: 100 }];
   if (label === "3B") return [{ action: "3Bet", pct: 100 }];
+  if (label === "4B") return [{ action: "4Bet", pct: 100 }];
   if (label === "C") return [{ action: "Call", pct: 100 }];
-  if (label === "R+" || label === "R" || label === "RC" || label === "RF") return [{ action: "Raise", pct: 100 }];
+  if (label === "R+" || label === "R" || label === "RC" || label === "RF" || label === "ISO") return [{ action: "Raise", pct: 100 }];
   if (label === "M") {
     if (s.includes("push") || s.includes("rejam")) return [{ action: "Allin", pct: 50 }, { action: "Fold", pct: 50 }];
     if (s.includes("bb defend")) return [{ action: "Call", pct: 50 }, { action: "Fold", pct: 50 }];
+    if (s.includes("4bet")) return [{ action: "4Bet", pct: 50 }, { action: "Fold", pct: 50 }];
+    if (s.includes("3bet")) return [{ action: "3Bet", pct: 50 }, { action: "Fold", pct: 50 }];
     return [{ action: "Raise", pct: 50 }, { action: "Fold", pct: 50 }];
   }
   return [{ action: "Fold", pct: 100 }];
@@ -131,8 +145,7 @@ function strategyGroups(range) {
   return groups;
 }
 
-function renderStrategyGroups(range) {
-  const groups = strategyGroups(range);
+function renderStrategyGroups(groups) {
   return actionOrder
     .filter((action) => groups[action].length)
     .map((action) => {
@@ -151,7 +164,12 @@ function renderStrategyGroups(range) {
 }
 
 function renderRangeHtml(range) {
-  const strategyList = renderStrategyGroups(range);
+  const groups = strategyGroups(range);
+  const strategyList = renderStrategyGroups(groups);
+  const actionLegend = actionOrder
+    .filter((action) => groups[action].length)
+    .map((action) => `<span><i style="background:${actionPalette[action]};"></i>${escapeHtml(action)}</span>`)
+    .join("");
   const cells = ranks.map((_, rowIndex) => {
     const tds = ranks.map((__, colIndex) => {
       const hand = handAt(rowIndex, colIndex);
@@ -188,7 +206,7 @@ function renderRangeHtml(range) {
 
   <section class="range-matrix-panel">
     <div class="range-action-legend">
-      ${Object.entries(actionPalette).map(([action, color]) => `<span><i style="background:${color};"></i>${escapeHtml(action)}</span>`).join("")}
+      ${actionLegend}
     </div>
     <div class="range-grid-wrap">
       <table class="range-grid" aria-label="${escapeHtml(range.title)}">
@@ -222,7 +240,7 @@ function renderRangeHtml(range) {
 </section>`;
 }
 
-function markdownManifestEntry(file, sourceRoot, prefix, contentType) {
+function markdownManifestEntry(course, file, sourceRoot, prefix, contentType) {
   const rel = relative(sourceRoot, file).replaceAll("\\", "/");
   const targetRel = `${prefix}/${rel}`;
   const target = join(out, "content", course.contentDir, targetRel);
@@ -241,7 +259,7 @@ function markdownManifestEntry(file, sourceRoot, prefix, contentType) {
   };
 }
 
-function rangeManifestEntry(file, sourceRoot) {
+function rangeManifestEntry(course, file, sourceRoot) {
   const range = JSON.parse(readFileSync(file, "utf8"));
   const rel = relative(sourceRoot, file).replaceAll("\\", "/").replace(/\.json$/i, ".html");
   const targetRel = `ranges/${rel}`;
@@ -271,21 +289,36 @@ for (const file of appFiles) {
   copyFileSync(join(root, file), join(out, file));
 }
 
-const lessonsRoot = join(course.docsRoot, "lessons");
-const rangesRoot = join(course.docsRoot, "ranges");
-const quizzesRoot = join(course.docsRoot, "quizzes");
-const lessons = walkFiles(lessonsRoot, (file) => file.toLowerCase().endsWith(".md"))
-  .sort(sortZh)
-  .map((file) => markdownManifestEntry(file, lessonsRoot, "lessons", "lesson"));
-const ranges = walkFiles(rangesRoot, (file) => file.toLowerCase().endsWith(".json"))
-  .sort(sortZh)
-  .map((file) => rangeManifestEntry(file, rangesRoot));
-const quizzes = walkFiles(quizzesRoot, (file) => file.toLowerCase().endsWith(".md"))
-  .sort(sortZh)
-  .map((file) => markdownManifestEntry(file, quizzesRoot, "quizzes", "quiz"));
-const manifest = [...lessons, ...ranges, ...quizzes];
+function courseManifest(course) {
+  const lessonsRoot = join(course.docsRoot, "lessons");
+  const rangesRoot = join(course.docsRoot, "ranges");
+  const quizzesRoot = join(course.docsRoot, "quizzes");
+  const lessons = existsSync(lessonsRoot)
+    ? walkFiles(lessonsRoot, (file) => file.toLowerCase().endsWith(".md"))
+      .sort(sortZh)
+      .map((file) => markdownManifestEntry(course, file, lessonsRoot, "lessons", "lesson"))
+    : [];
+  const ranges = existsSync(rangesRoot)
+    ? walkFiles(rangesRoot, (file) => file.toLowerCase().endsWith(".json"))
+      .sort(sortZh)
+      .map((file) => rangeManifestEntry(course, file, rangesRoot))
+    : [];
+  const quizzes = existsSync(quizzesRoot)
+    ? walkFiles(quizzesRoot, (file) => file.toLowerCase().endsWith(".md"))
+      .sort(sortZh)
+      .map((file) => markdownManifestEntry(course, file, quizzesRoot, "quizzes", "quiz"))
+    : [];
+  return { lessons, ranges, quizzes, manifest: [...lessons, ...ranges, ...quizzes] };
+}
+
+const courseOutputs = courses.map(courseManifest);
+const manifest = courseOutputs.flatMap((output) => output.manifest);
 
 copyFileSync(join(root, "manifest.webmanifest"), join(out, "manifest.webmanifest"));
 writeFileSync(join(out, "content-manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
 
-console.log(`Built MTT v2 app assets into ${out}: ${lessons.length} lessons, ${ranges.length} ranges, ${quizzes.length} quizzes, ${manifest.length} total entries.`);
+const summary = courses.map((course, index) => {
+  const output = courseOutputs[index];
+  return `${course.id}: ${output.lessons.length} lessons, ${output.ranges.length} ranges, ${output.quizzes.length} quizzes`;
+}).join("; ");
+console.log(`Built Poker app assets into ${out}: ${summary}; ${manifest.length} total entries.`);

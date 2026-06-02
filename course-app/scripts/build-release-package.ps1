@@ -17,7 +17,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $workspaceRoot = Resolve-Path (Join-Path $repoRoot "..\..")
 $releaseDir = Join-Path $repoRoot "releases"
 $packageJsonPath = Join-Path $repoRoot "package.json"
-$releasePrefix = "mtt-v2-course"
+$releasePrefix = "poker-course"
 
 if (-not $TelegramConfigPath) {
     $TelegramConfigPath = Join-Path $repoRoot ".codex\telegram-release.json"
@@ -232,7 +232,7 @@ if ($SendTelegram) {
         throw "Telegram delivery uses ZIP. Remove -NoZip."
     }
 
-    $defaultCaption = "MTT v2 Course App v$versionName $dateText$dailySuffix ($BuildType)"
+    $defaultCaption = "Poker Course App v$versionName $dateText$dailySuffix ($BuildType)"
     $sendCaption = if ($Caption) { $Caption } else { $defaultCaption }
     $url = "https://api.telegram.org/bot$TelegramBotToken/sendDocument"
     $response = curl.exe -sS -X POST $url `

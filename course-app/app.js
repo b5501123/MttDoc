@@ -46,7 +46,7 @@ const courseUi = {
     title: "MTT v2 線上 BBA",
     search: "搜尋 RFI、BB defend、rejam、push/fold、ICM、PKO...",
     pathIntro: "先讀 Stack Mode，再進 RFI、BB 防守、Rejam、Push/Fold，最後補 ICM、PKO 與 postflop SPR。每個 preflop 章節都要回到範圍表。",
-    quickIntro: "這裡放最常用的範圍表入口。範圍表現在用比例色塊顯示行動頻率，先看顏色分佈，再看手牌標籤。",
+    quickIntro: "這裡放最常用的範圍表入口。範圍表用比例色塊顯示行動頻率，主表先看牌型與色塊，下方再看策略清單。",
     reviewIntro: "複盤時先分類 spot，再對照範圍表。不要只看輸贏結果，要找 open 太寬、call-off 太寬、錯過 rejam 或 SPR 規劃錯誤。",
     routes: [
       ["怎麼學這套 MTT", "1. 學習方法", "先建立一手牌到整場比賽的決策線。"],
@@ -72,6 +72,39 @@ const courseUi = {
       ["3. Range", "先找 baseline，再標出 R+、R、M、RF、RC、RJ、AI。"],
       ["4. Adjustment", "只調整邊界，不因單一結果重寫策略。"],
       ["Review流程", "打開 Review 流程", "用固定欄位把錯手轉成下一次行動。"]
+    ]
+  },
+  "cash-game-v1": {
+    mark: "CG",
+    title: "Cash Game v1 線上 6-max",
+    search: "搜尋 RFI、3bet、BB defend、4bet、rake、river...",
+    pathIntro: "先讀 EV、位置、rake，再進 RFI、面對 open、盲位防守、3bet/4bet pot，最後補 flop、turn、river 與 pool exploit。",
+    quickIntro: "這裡放 6-max 100BB 最常用的 range 入口。先用表確認 baseline，再用 rake、位置與對手 pool 調整邊界。",
+    reviewIntro: "Cash game 複盤先分類 spot，再回到 range 與 SPR。不要只看最大輸贏 pot，要找 blinds、3bet pot、river call 這些長期 leak。",
+    routes: [
+      ["怎麼學 Cash Game", "1. 學習方法", "用 EV、位置、rake 串起一手牌。"],
+      ["RFI 完整主線", "2. RFI 主線", "6-max 100BB 的開局骨架。"],
+      ["面對 Open", "3. Vs Open", "Call、3bet、fold 不是單純牌力排序。"],
+      ["盲位防守", "4. Blinds", "價格、rake、OOP realization 一起看。"],
+      ["3Bet Pot 與 4Bet Pot", "5. 3B/4B Pot", "低 SPR 下先定義 preflop continue。"],
+      ["Flop C-bet", "6. Flop", "用牌面分類取代自動下注。"],
+      ["Turn 與 River", "7. Turn/River", "Value、bluff、bluff-catch 分線。"],
+      ["複盤與訓練", "8. 訓練", "把 session 變成可修正 leak。"]
+    ],
+    quick: [
+      ["cashv1-rfi-100bb-6max-btn", "100BB BTN RFI", "最常用 steal baseline。"],
+      ["cashv1-rfi-100bb-6max-sb", "100BB SB RFI", "SB 不能直接套 BTN。"],
+      ["cashv1-3bet-100bb-btn-vs-co", "BTN vs CO Open", "IP 3bet / call 分界。"],
+      ["cashv1-3bet-100bb-sb-vs-btn", "SB vs BTN Open", "OOP 3bet 與少 flat。"],
+      ["cashv1-bbdef-100bb-vs-btn", "BB Defend vs BTN", "BB 最寬但最容易漏錢。"],
+      ["cashv1-4bet-100bb-btn-vs-sb", "BTN vs SB 3Bet", "4bet / call / fold 低 SPR 起點。"]
+    ],
+    review: [
+      ["1. Spot", "RFI / vs open / blind defend / 3bet pot / flop / turn / river。"],
+      ["2. Position", "IP / OOP、SRP / 3bet pot / 4bet pot。"],
+      ["3. Rake", "檢查 marginal call 是否被 rake 吃掉。"],
+      ["4. Pool", "overfold、overcall、under-bluff、aggressive 3bettor。"],
+      ["複盤與訓練", "打開 Cash 複盤章", "用固定欄位把 session leak 轉成下週訓練。"]
     ]
   }
 };

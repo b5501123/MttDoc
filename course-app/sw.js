@@ -1,4 +1,4 @@
-const CACHE_NAME = "mtt-v2-reader-v1";
+const CACHE_NAME = "poker-course-reader-v1";
 const CORE_ASSETS = [
   "./",
   "./index.html",

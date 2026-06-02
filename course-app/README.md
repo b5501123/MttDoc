@@ -1,6 +1,6 @@
-# MTT Course App
+# Poker Course App
 
-`docs/course-app` 會把 `docs/mtt-v2` 的 MTT v2 教材打包成可離線閱讀的 PWA / Android APK。這一版只包含新寫的線上 MTT / Big Blind Ante 課文、13x13 範圍表與測驗；舊 `docs/mtt` 與 `docs/cash-game` 已移除，Cash Game 會在 MTT 完成後另起新版。
+`docs/course-app` 會把 `docs/mtt-v2` 與 `docs/cash-game-v1` 打包成可離線閱讀的 PWA / Android APK。這一版包含新寫的線上 MTT / Big Blind Ante 教材，以及線上 6-max 100BB Cash Game 教材、13x13 範圍表與測驗。
 
 ## 本機預覽
 
@@ -50,8 +50,8 @@ cd C:\mtt-gto-solver\docs\course-app
 產物會寫到：
 
 ```text
-C:\mtt-gto-solver\docs\course-app\releases\mtt-v2-course-v{version}-{yyyyMMddN}-debug.apk
-C:\mtt-gto-solver\docs\course-app\releases\mtt-v2-course-v{version}-{yyyyMMddN}-debug.zip
+C:\mtt-gto-solver\docs\course-app\releases\poker-course-v{version}-{yyyyMMddN}-debug.apk
+C:\mtt-gto-solver\docs\course-app\releases\poker-course-v{version}-{yyyyMMddN}-debug.zip
 ```
 
 直接發 Telegram：
@@ -91,7 +91,7 @@ Android Gradle Plugin 8.x 需要 JDK 17，不要用 Java 8。
 ## 注意事項
 
 - 目前發 TG 使用 debug APK，適合測試頻道與教材驗收。
-- App 目前只內建 MTT v2。Cash Game 舊版已刪除，後續會重做新版再加入。
+- App 目前內建 MTT v2 與 Cash Game v1。舊版 MTT / Cash Game 內容不再作為來源。
 - 正式上架或對外 release 前，仍要補 Android release signing。
 - TG 發送的是 ZIP，裡面只包含 APK。
 - 每次同一天重打包會自動使用流水號 `{yyyyMMddN}`，避免覆蓋既有檔案。

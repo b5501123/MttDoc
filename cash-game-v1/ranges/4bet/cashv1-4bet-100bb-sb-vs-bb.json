@@ -1,0 +1,56 @@
+{
+  "id": "cashv1-4bet-100bb-sb-vs-bb",
+  "title": "100BB SB Continue vs BB 3bet",
+  "game": "NLH Cash 6-max 100BB",
+  "table": "6max",
+  "spot": "4Bet Continue",
+  "stackBb": 100,
+  "position": "SB",
+  "villainPosition": "BB 3bet",
+  "openSize": "2.5bb",
+  "source": "training-baseline",
+  "legend": {
+    "R": "open / raise",
+    "M": "mixed / pool adjustment",
+    "F": "fold",
+    "C": "call / defend",
+    "3B": "3bet",
+    "4B": "4bet"
+  },
+  "hands": {
+    "88": "C",
+    "99": "C",
+    "AA": "4B",
+    "KK": "4B",
+    "QQ": "4B",
+    "JJ": "4B",
+    "TT": "4B",
+    "AKs": "4B",
+    "AQs": "4B",
+    "AKo": "4B",
+    "A5s": "4B",
+    "A4s": "4B",
+    "AJs": "C",
+    "ATs": "C",
+    "KQs": "C",
+    "KJs": "C",
+    "QJs": "C",
+    "AQo": "C",
+    "KQo": "C",
+    "A3s": "M",
+    "A2s": "M",
+    "KTs": "M",
+    "QTs": "M",
+    "JTs": "M"
+  },
+  "notes": [
+    "4bet bluff 要有 fold equity；對 value-heavy pool 收掉 Axs bluff。",
+    "OOP call 3bet 要比 IP 更謹慎。"
+  ],
+  "boundary": [
+    "A5s-A2s",
+    "JJ/TT/99",
+    "AQo/AJs",
+    "KQs/KJs"
+  ]
+}
